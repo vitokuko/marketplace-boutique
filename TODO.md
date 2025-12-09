@@ -1,0 +1,3 @@
+- [x] Add logo above description text in first column of footer
+- [x] Change title colors to white for "Navigation rapide", "Support et Contact", "Suivez - nous"
+- [x] Add 1.3 cm white line below each of these titles
