@@ -7,7 +7,7 @@ import Footer from "../components/Footer/Footer";
 import { useShop } from "../context/ShopContext";
 
 export default function Products() {
-  const { boutique, boutiqueId, isLoading, error } = useShop();
+  const { boutiqueId, isLoading, error } = useShop();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(0);
   const [sortBy, setSortBy] = useState('popularity');
   const [priceRange, setPriceRange] = useState([0, 200000]);

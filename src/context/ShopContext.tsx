@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getBoutiqueBySlug, Boutique } from '../services/boutiqueService';
+import { getBoutiqueBySlug } from '../services/boutiqueService';
+import type { Boutique } from '../services/boutiqueService';
 
 interface ShopContextType {
   boutique: Boutique | null;
