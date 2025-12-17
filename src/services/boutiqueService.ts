@@ -11,11 +11,13 @@ export interface BoutiqueData {
 export interface Boutique {
   id: number;
   nom: string;
+  slug: string;
+  logo: string | null;
   adresse: string;
   email: string;
   telephone: string;
-  secteurActiviteId: string;
-  dateCreation: string;
+  secteurActiviteId?: string;
+  dateCreation?: string;
 }
 
 export const createBoutique = async (boutiqueData: BoutiqueData): Promise<Boutique> => {
@@ -37,5 +39,15 @@ export const getBoutiqueByPhone = async (): Promise<Boutique | null> => {
   } catch (error) {
     console.error('Erreur lors de la recherche de la boutique:', error);
     return null;
+  }
+};
+
+export const getBoutiqueBySlug = async (slug: string): Promise<Boutique> => {
+  try {
+    const response = await apiCall<Boutique>(`/public/boutiques/${slug}`);
+    return response;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la boutique par slug:', error);
+    throw new Error('Boutique introuvable');
   }
 };

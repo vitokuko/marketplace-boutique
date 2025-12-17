@@ -26,9 +26,26 @@ export interface Category {
   description?: string;
 }
 
-export const getProducts = async (categoryId?: number | null): Promise<Product[]> => {
+export const getProducts = async (
+  categoryId?: number | null,
+  boutiqueId?: number | null
+): Promise<Product[]> => {
   try {
-    const url = categoryId && categoryId !== 0 ? `/public/products?category_id=${categoryId}` : '/public/products';
+    let url = '/public/products';
+    const params = new URLSearchParams();
+
+    if (categoryId && categoryId !== 0) {
+      params.append('category_id', categoryId.toString());
+    }
+
+    if (boutiqueId) {
+      params.append('boutique_id', boutiqueId.toString());
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
     const response = await apiCall<Product[]>(url);
     return response || [];
   } catch (error) {
@@ -37,9 +54,14 @@ export const getProducts = async (categoryId?: number | null): Promise<Product[]
   }
 };
 
-export const getCategories = async (): Promise<Category[]> => {
+export const getCategories = async (boutiqueId?: number | null): Promise<Category[]> => {
   try {
-    const response = await apiCall<Category[]>('/public/categories');
+    let url = '/public/categories';
+    if (boutiqueId) {
+      url += `?boutique_id=${boutiqueId}`;
+    }
+
+    const response = await apiCall<Category[]>(url);
     return response || [];
   } catch (error) {
     //console.error('Error fetching categories:', error);

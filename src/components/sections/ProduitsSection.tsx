@@ -27,6 +27,7 @@ interface ProduitsProps {
   sortBy?: string;
   priceRange?: number[];
   searchTerm?: string;
+  boutiqueId?: number | null;
 }
 
 const ProduitsSection: React.FC<ProduitsProps> = ({
@@ -34,7 +35,8 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
   selectedCategoryId = 0,
   sortBy = 'popularity',
   priceRange = [0, 200000],
-  searchTerm = ''
+  searchTerm = '',
+  boutiqueId = null
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -49,7 +51,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const data = await getProducts(selectedCategoryId);
+        const data = await getProducts(selectedCategoryId, boutiqueId);
         const displayProducts: Product[] = data.map(p => ({
           id: p.id,
           name: p.nom,
@@ -72,7 +74,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
       }
     };
     loadProducts();
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, boutiqueId]);
   
   const filteredAndSortedProducts = useMemo(() => {
     if (products.length === 0) return [];

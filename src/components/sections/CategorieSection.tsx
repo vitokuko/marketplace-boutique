@@ -10,16 +10,17 @@ interface Category {
 interface CategorieSectionProps {
   selectedCategoryId: number | null;
   onCategorySelect: (id: number) => void;
+  boutiqueId?: number | null;
 }
 
-const CategorieSection: React.FC<CategorieSectionProps> = ({ selectedCategoryId, onCategorySelect }) => {
+const CategorieSection: React.FC<CategorieSectionProps> = ({ selectedCategoryId, onCategorySelect, boutiqueId = null }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const data = await getCategories();
+        const data = await getCategories(boutiqueId);
         const allCategories = [{ id: 0, nom: 'Toutes' }, ...data];
         setCategories(allCategories);
       } catch (error) {
@@ -29,7 +30,7 @@ const CategorieSection: React.FC<CategorieSectionProps> = ({ selectedCategoryId,
       }
     };
     loadCategories();
-  }, []);
+  }, [boutiqueId]);
 
   if (loading) {
     return (
