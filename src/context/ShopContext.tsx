@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getBoutiqueBySlug } from '../services/boutiqueService';
 import type { Boutique } from '../services/boutiqueService';
 
@@ -18,23 +18,33 @@ const ShopContext = createContext<ShopContextType>({
 });
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { shopSlug } = useParams<{ shopSlug?: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const [boutique, setBoutique] = useState<Boutique | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Extraire le slug manuellement depuis le pathname
+  const pathname = location.pathname;
+  const shopSlug = pathname.split('/')[1] || undefined;
+
+  // Ignorer les routes système
+  const isSystemRoute = shopSlug === 'products' || shopSlug === '';
+
   // Debug logging
-  console.log('🔍 ShopContext - shopSlug from useParams:', shopSlug);
+  console.log('🔍 ShopContext - pathname:', pathname);
+  console.log('🔍 ShopContext - extracted shopSlug:', shopSlug);
+  console.log('🔍 ShopContext - isSystemRoute:', isSystemRoute);
   console.log('🔍 ShopContext - Current URL:', window.location.href);
-  console.log('🔍 ShopContext - Current pathname:', window.location.pathname);
 
   useEffect(() => {
     console.log('🔄 ShopContext useEffect triggered with shopSlug:', shopSlug);
+    console.log('🔄 ShopContext useEffect - isSystemRoute:', isSystemRoute);
 
     const fetchBoutique = async () => {
-      if (!shopSlug) {
-        console.log('⚠️ ShopContext - No shopSlug, clearing boutique');
+      // Si c'est une route système ou pas de slug, ne pas charger de boutique
+      if (!shopSlug || isSystemRoute) {
+        console.log('⚠️ ShopContext - No shopSlug or system route, clearing boutique');
         setBoutique(null);
         return;
       }
@@ -58,7 +68,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     fetchBoutique();
-  }, [shopSlug, navigate]);
+  }, [shopSlug, isSystemRoute, navigate]);
 
   return (
     <ShopContext.Provider
