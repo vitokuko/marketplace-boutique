@@ -23,6 +23,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [boutique, setBoutique] = useState<Boutique | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lockedSlug, setLockedSlug] = useState<string | null>(null);
 
   // Extraire le slug manuellement depuis le pathname
   const pathname = location.pathname;
@@ -31,10 +32,25 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Ignorer les routes système
   const isSystemRoute = shopSlug === 'products' || shopSlug === '';
 
+  // Vérifier si l'utilisateur essaie de changer de boutique
+  useEffect(() => {
+    // Si un slug est verrouillé et que l'utilisateur essaie d'accéder à un autre slug
+    if (lockedSlug && shopSlug && !isSystemRoute && shopSlug !== lockedSlug) {
+      console.warn('🚫 Tentative de changement de boutique bloquée:', {
+        lockedSlug,
+        attemptedSlug: shopSlug
+      });
+
+      // Rediriger vers la boutique verrouillée
+      navigate(`/${lockedSlug}`, { replace: true });
+    }
+  }, [shopSlug, lockedSlug, isSystemRoute, navigate]);
+
   // Debug logging
   console.log('🔍 ShopContext - pathname:', pathname);
   console.log('🔍 ShopContext - extracted shopSlug:', shopSlug);
   console.log('🔍 ShopContext - isSystemRoute:', isSystemRoute);
+  console.log('🔍 ShopContext - lockedSlug:', lockedSlug);
   console.log('🔍 ShopContext - Current URL:', window.location.href);
 
   useEffect(() => {
@@ -57,6 +73,12 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await getBoutiqueBySlug(shopSlug);
         console.log('✅ ShopContext - Boutique loaded:', data);
         setBoutique(data);
+
+        // Verrouiller le slug une fois la boutique chargée avec succès
+        if (!lockedSlug) {
+          console.log('🔒 Verrouillage de la boutique:', shopSlug);
+          setLockedSlug(shopSlug);
+        }
       } catch (err) {
         console.error('❌ ShopContext - Error loading boutique:', err);
         setError('Boutique introuvable');
@@ -68,7 +90,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     fetchBoutique();
-  }, [shopSlug, isSystemRoute, navigate]);
+  }, [shopSlug, isSystemRoute, lockedSlug, navigate]);
 
   return (
     <ShopContext.Provider
