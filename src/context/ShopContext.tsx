@@ -24,21 +24,31 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Debug logging
+  console.log('🔍 ShopContext - shopSlug from useParams:', shopSlug);
+  console.log('🔍 ShopContext - Current URL:', window.location.href);
+  console.log('🔍 ShopContext - Current pathname:', window.location.pathname);
+
   useEffect(() => {
+    console.log('🔄 ShopContext useEffect triggered with shopSlug:', shopSlug);
+
     const fetchBoutique = async () => {
       if (!shopSlug) {
+        console.log('⚠️ ShopContext - No shopSlug, clearing boutique');
         setBoutique(null);
         return;
       }
 
+      console.log('📡 ShopContext - Fetching boutique for slug:', shopSlug);
       setIsLoading(true);
       setError(null);
 
       try {
         const data = await getBoutiqueBySlug(shopSlug);
+        console.log('✅ ShopContext - Boutique loaded:', data);
         setBoutique(data);
       } catch (err) {
-        console.error('Erreur lors du chargement de la boutique:', err);
+        console.error('❌ ShopContext - Error loading boutique:', err);
         setError('Boutique introuvable');
         // Rediriger vers marketplace global après 2s
         setTimeout(() => navigate('/'), 2000);
