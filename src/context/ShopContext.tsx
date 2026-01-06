@@ -36,51 +36,32 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Si un slug est verrouillé et que l'utilisateur essaie d'accéder à un autre slug
     if (lockedSlug && shopSlug && !isSystemRoute && shopSlug !== lockedSlug) {
-      console.warn('🚫 Tentative de changement de boutique bloquée:', {
-        lockedSlug,
-        attemptedSlug: shopSlug
-      });
-
       // Rediriger vers la boutique verrouillée
       navigate(`/${lockedSlug}`, { replace: true });
     }
   }, [shopSlug, lockedSlug, isSystemRoute, navigate]);
 
-  // Debug logging
-  console.log('🔍 ShopContext - pathname:', pathname);
-  console.log('🔍 ShopContext - extracted shopSlug:', shopSlug);
-  console.log('🔍 ShopContext - isSystemRoute:', isSystemRoute);
-  console.log('🔍 ShopContext - lockedSlug:', lockedSlug);
-  console.log('🔍 ShopContext - Current URL:', window.location.href);
-
   useEffect(() => {
-    console.log('🔄 ShopContext useEffect triggered with shopSlug:', shopSlug);
-    console.log('🔄 ShopContext useEffect - isSystemRoute:', isSystemRoute);
-
     const fetchBoutique = async () => {
       // Si c'est une route système ou pas de slug, ne pas charger de boutique
       if (!shopSlug || isSystemRoute) {
-        console.log('⚠️ ShopContext - No shopSlug or system route, clearing boutique');
         setBoutique(null);
         return;
       }
 
-      console.log('📡 ShopContext - Fetching boutique for slug:', shopSlug);
       setIsLoading(true);
       setError(null);
 
       try {
         const data = await getBoutiqueBySlug(shopSlug);
-        console.log('✅ ShopContext - Boutique loaded:', data);
         setBoutique(data);
 
         // Verrouiller le slug une fois la boutique chargée avec succès
         if (!lockedSlug) {
-          console.log('🔒 Verrouillage de la boutique:', shopSlug);
           setLockedSlug(shopSlug);
         }
       } catch (err) {
-        console.error('❌ ShopContext - Error loading boutique:', err);
+        console.error('Erreur lors du chargement de la boutique:', err);
         setError('Boutique introuvable');
         // Rediriger vers marketplace global après 2s
         setTimeout(() => navigate('/'), 2000);

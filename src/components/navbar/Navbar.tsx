@@ -12,9 +12,6 @@ const Navbar = () => {
   const { getTotalItems } = useCart();
   const { boutique } = useShop();
 
-  // Debug logging
-  console.log('🔍 Navbar - boutique from useShop:', boutique);
-
   return (
     <nav className="bg-gradient-to-r from-[#6a3ab9] to-[#4a2a8c] w-full fixed top-0 left-0 right-0 z-50">
       <div className="flex items-center justify-between py-2 sm:py-3 lg:py-5 px-3 sm:px-4 lg:px-6 xl:px-10">
