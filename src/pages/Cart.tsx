@@ -3,6 +3,7 @@ import { Minus, Plus, Trash2, ShoppingBag, X, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useShop } from '../context/ShopContext';
 import { calculatePapsDeliveryRate } from '../services/papsService';
+import GoogleAddressAutocomplete from '../components/GoogleAddressAutocomplete';
 
 interface OrderForm {
   nomComplet: string;
@@ -325,13 +326,13 @@ const Cart: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Adresse de livraison <span className="text-red-500">*</span>
                   </label>
-                  <textarea
+                  <GoogleAddressAutocomplete
                     value={orderForm.adresseLivraison}
-                    onChange={(e) => handleInputChange('adresseLivraison', e.target.value)}
+                    onChange={(value) => handleInputChange('adresseLivraison', value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       errors.adresseLivraison ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Entrez votre adresse complète"
+                    placeholder="Entrez votre adresse complète (ex: Dakar, Sénégal)"
                     rows={3}
                   />
                   {errors.adresseLivraison && (
