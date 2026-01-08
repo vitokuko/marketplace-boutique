@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLoadScript, Autocomplete } from '@react-google-maps/api';
 
 const libraries: ("places")[] = ["places"];
@@ -9,24 +9,25 @@ interface GoogleAddressAutocompleteProps {
   placeholder?: string;
   className?: string;
   error?: string;
-  rows?: number;
 }
 
 const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   value,
   onChange,
   placeholder = "Entrez votre adresse complète",
-  className = "",
-  error,
-  rows = 3
+  className = ""
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Ne charger Google Maps que si la clé API est valide
+  const shouldLoadMaps = apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: apiKey || "",
     libraries,
+    preventGoogleFontsLoading: true,
   });
 
   const onLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
@@ -42,56 +43,51 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
     }
   };
 
-  // Fallback si Google Maps n'est pas chargé ou clé manquante
-  if (loadError || !apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+  // Fallback: input simple si pas de clé API ou erreur de chargement
+  if (!shouldLoadMaps || loadError) {
     return (
-      <div>
-        <textarea
-          ref={inputRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={className}
-          placeholder={placeholder}
-          rows={rows}
-        />
-        {(!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') && (
-          <p className="text-xs text-yellow-600 mt-1">
-            ⚠️ Google Maps API non configurée - Saisie manuelle uniquement
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <textarea
+      <input
+        ref={inputRef}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={className}
-        placeholder="Chargement de l'autocomplétion..."
-        rows={rows}
+        placeholder={placeholder}
+      />
+    );
+  }
+
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={className}
+        placeholder="Chargement..."
         disabled
       />
     );
   }
 
+  // Google Maps Autocomplete
   return (
     <Autocomplete
       onLoad={onLoad}
       onPlaceChanged={onPlaceChanged}
       options={{
-        componentRestrictions: { country: "sn" }, // Limiter au Sénégal
-        types: ["address"], // Limiter aux adresses
+        componentRestrictions: { country: "sn" },
+        types: ["address"],
       }}
     >
-      <textarea
+      <input
         ref={inputRef}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={className}
         placeholder={placeholder}
-        rows={rows}
       />
     </Autocomplete>
   );
