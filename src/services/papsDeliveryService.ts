@@ -23,7 +23,7 @@ class PapsDeliveryService {
    */
   async calculateDeliveryFee(request: DeliveryCalculationRequest): Promise<DeliveryFeeResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/public/orders/calculate-fee`, {
+      const response = await fetch(`${API_BASE_URL}/public/orders/calculate-delivery-fee`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ class PapsDeliveryService {
       return {
         fraisLivraison: data.fraisLivraison || 0,
         zoneDetectee: data.zoneDetectee || null,
-        estimatedTime: data.estimatedTime,
+        estimatedTime: data.tempsEstime || data.estimatedTime,
       };
     } catch (error) {
       console.error('Erreur calculateDeliveryFee:', error);
