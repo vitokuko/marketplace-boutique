@@ -10,6 +10,7 @@ declare global {
 interface GoogleAddressAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  onAddressSelected?: () => void;
   placeholder?: string;
   className?: string;
   error?: string;
@@ -18,6 +19,7 @@ interface GoogleAddressAutocompleteProps {
 const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   value,
   onChange,
+  onAddressSelected,
   placeholder = "Entrez votre adresse complète",
   className = ""
 }) => {
@@ -61,6 +63,15 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
           await place.fetchFields({ fields: ['formattedAddress'] });
           if (place.formattedAddress) {
             onChange(place.formattedAddress);
+            // Déclencher le callback pour calculer le prix
+            setTimeout(() => {
+              if (onAddressSelected) {
+                onAddressSelected();
+              }
+              // Déclencher aussi l'événement blur comme fallback
+              const event = new Event('blur', { bubbles: true });
+              autocomplete.dispatchEvent(event);
+            }, 100);
           }
         });
 
@@ -72,34 +83,56 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
           inputRef.current.parentNode.replaceChild(autocomplete, inputRef.current);
           autocompleteRef.current = autocomplete;
 
-          // Ajouter les styles CSS directement
-          const style = document.createElement('style');
-          style.textContent = `
-            gmp-place-autocomplete {
-              width: 100%;
-            }
-            gmp-place-autocomplete input {
-              width: 100% !important;
-              padding: 0.5rem 0.75rem !important;
-              border: 1px solid #d1d5db !important;
-              border-radius: 0.5rem !important;
-              outline: none !important;
-              font-size: 1rem !important;
-              line-height: 1.5rem !important;
-              color: #1f2937 !important;
-              background-color: white !important;
-            }
-            gmp-place-autocomplete input:focus {
-              outline: 2px solid transparent !important;
-              outline-offset: 2px !important;
-              box-shadow: 0 0 0 2px #3b82f6 !important;
-              border-color: #3b82f6 !important;
-            }
-            gmp-place-autocomplete input.border-red-500 {
-              border-color: #ef4444 !important;
-            }
-          `;
-          document.head.appendChild(style);
+          // Appliquer les styles via les propriétés CSS personnalisées de Google Maps
+          // et les styles globaux pour cibler le shadow DOM
+          if (!document.querySelector('#gmp-autocomplete-styles')) {
+            const style = document.createElement('style');
+            style.id = 'gmp-autocomplete-styles';
+            style.textContent = `
+              gmp-place-autocomplete {
+                width: 100%;
+                display: block;
+              }
+
+              /* Styles pour l'input dans le shadow DOM */
+              gmp-place-autocomplete::part(input) {
+                width: 100%;
+                padding: 0.5rem 0.75rem;
+                border: 1px solid #d1d5db;
+                border-radius: 0.5rem;
+                font-size: 1rem;
+                line-height: 1.5rem;
+                color: #1f2937;
+                background-color: white;
+                outline: none;
+              }
+
+              gmp-place-autocomplete::part(input):focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+              }
+
+              /* Fallback pour navigateurs qui ne supportent pas ::part() */
+              gmp-place-autocomplete input {
+                width: 100% !important;
+                padding: 0.5rem 0.75rem !important;
+                border: 1px solid #d1d5db !important;
+                border-radius: 0.5rem !important;
+                font-size: 1rem !important;
+                line-height: 1.5rem !important;
+                color: #1f2937 !important;
+                background-color: white !important;
+                outline: none !important;
+                box-sizing: border-box !important;
+              }
+
+              gmp-place-autocomplete input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+              }
+            `;
+            document.head.appendChild(style);
+          }
         }
       } catch (error) {
         console.error('Erreur initialisation Google Maps:', error);

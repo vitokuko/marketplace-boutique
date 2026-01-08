@@ -59,14 +59,13 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
 
   return (
     <div>
-      <div onBlur={handleCalculateFees}>
-        <GoogleAddressAutocomplete
-          value={adresse}
-          onChange={setAdresse}
-          placeholder={placeholder}
-          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
-        />
-      </div>
+      <GoogleAddressAutocomplete
+        value={adresse}
+        onChange={setAdresse}
+        onAddressSelected={handleCalculateFees}
+        placeholder={placeholder}
+        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      />
       {isCalculating && (
         <p className="text-sm text-blue-600 mt-1">Calcul des frais de livraison en cours...</p>
       )}
