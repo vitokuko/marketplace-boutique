@@ -8,7 +8,7 @@ class LivraisonService {
   async getZonesDisponibles(): Promise<ZoneLivraison[]> {
     try {
       //console.log('Récupération des zones depuis l\'API...');
-      const response = await fetch(`${API_BASE_URL}/api/livraisons/zones`);
+      const response = await fetch(`${API_BASE_URL}/zones`);
       if (!response.ok) {
         //console.error('Erreur API:', response.status, response.statusText);
         throw new Error(`Erreur lors du chargement des zones: ${response.status}`);
@@ -116,7 +116,7 @@ class LivraisonService {
 
   async getConfigurationMarchand(marchandId: number): Promise<ConfigurationMarchand | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/marchands/${marchandId}/livraison-config`);
+      const response = await fetch(`${API_BASE_URL}/marchands/${marchandId}/livraison-config`);
       if (!response.ok) throw new Error('Configuration non trouvée');
       return await response.json();
     } catch (error) {
