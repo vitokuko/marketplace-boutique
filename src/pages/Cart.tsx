@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Minus, Plus, Trash2, ShoppingBag, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Minus, Plus, Trash2, ShoppingBag, X, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useShop } from '../context/ShopContext';
+import { calculatePapsDeliveryRate } from '../services/papsService';
 
 interface OrderForm {
   nomComplet: string;
@@ -12,6 +14,7 @@ interface OrderForm {
 
 const Cart: React.FC = () => {
   const { items, updateQuantity, removeFromCart, clearCart, getTotalPrice } = useCart();
+  const { boutique } = useShop();
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [orderForm, setOrderForm] = useState<OrderForm>({
     nomComplet: '',
@@ -21,6 +24,9 @@ const Cart: React.FC = () => {
     adresseLivraison: ''
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [isCalculatingDelivery, setIsCalculatingDelivery] = useState(false);
+  const [deliveryInfo, setDeliveryInfo] = useState<{ distance?: number; packageSize?: string } | null>(null);
 
   const handleOrder = () => {
     setShowOrderModal(true);
@@ -67,15 +73,67 @@ const Cart: React.FC = () => {
     }
   };
 
+  // Calculer les frais de livraison Paps lorsque l'adresse change
+  useEffect(() => {
+    const calculateDelivery = async () => {
+      if (
+        orderForm.typeRecuperation === 'domicile' &&
+        orderForm.adresseLivraison.trim().length > 10 &&
+        boutique?.adresse
+      ) {
+        setIsCalculatingDelivery(true);
+        try {
+          // Calculer le poids total approximatif (1kg par article par défaut)
+          const totalWeight = items.reduce((sum, item) => sum + item.quantity, 0);
+
+          const result = await calculatePapsDeliveryRate({
+            destination: orderForm.adresseLivraison,
+            origin: boutique.adresse,
+            weight: totalWeight,
+            deliveryType: 'STANDARD'
+          });
+
+          setDeliveryFee(result.price);
+          setDeliveryInfo({
+            distance: result.distance,
+            packageSize: result.packageSize
+          });
+        } catch (error) {
+          console.error('Erreur lors du calcul des frais de livraison:', error);
+          setDeliveryFee(0);
+          setDeliveryInfo(null);
+        } finally {
+          setIsCalculatingDelivery(false);
+        }
+      } else {
+        setDeliveryFee(0);
+        setDeliveryInfo(null);
+      }
+    };
+
+    const debounceTimer = setTimeout(calculateDelivery, 800);
+    return () => clearTimeout(debounceTimer);
+  }, [orderForm.adresseLivraison, orderForm.typeRecuperation, boutique?.adresse, items]);
+
   const handleRecuperationChange = (type: 'boutique' | 'domicile') => {
-    setOrderForm(prev => ({ 
-      ...prev, 
+    setOrderForm(prev => ({
+      ...prev,
       typeRecuperation: type,
       adresseLivraison: type === 'boutique' ? '' : prev.adresseLivraison
     }));
     if (errors.adresseLivraison && type === 'boutique') {
       setErrors(prev => ({ ...prev, adresseLivraison: '' }));
     }
+    // Réinitialiser les frais de livraison si on passe en récupération boutique
+    if (type === 'boutique') {
+      setDeliveryFee(0);
+      setDeliveryInfo(null);
+    }
+  };
+
+  // Calculer le total avec frais de livraison
+  const getTotalWithDelivery = () => {
+    return getTotalPrice() + deliveryFee;
   };
 
   if (items.length === 0) {
@@ -279,6 +337,24 @@ const Cart: React.FC = () => {
                   {errors.adresseLivraison && (
                     <p className="text-red-500 text-sm mt-1">{errors.adresseLivraison}</p>
                   )}
+
+                  {isCalculatingDelivery && (
+                    <div className="mt-2 flex items-center text-blue-600 text-sm">
+                      <Loader2 className="animate-spin mr-2" size={16} />
+                      Calcul des frais de livraison...
+                    </div>
+                  )}
+
+                  {deliveryInfo && deliveryFee > 0 && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-semibold">Frais de livraison:</span> {deliveryFee.toLocaleString()} FCFA
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Distance: {(deliveryInfo.distance! / 1000).toFixed(2)} km • Taille: {deliveryInfo.packageSize}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -288,11 +364,28 @@ const Cart: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                {deliveryFee > 0 && (
+                  <>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Sous-total:</span>
+                      <span className="font-medium text-gray-700">
+                        {getTotalPrice().toLocaleString()} FCFA
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Frais de livraison:</span>
+                      <span className="font-medium text-gray-700">
+                        {deliveryFee.toLocaleString()} FCFA
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-300 pt-2"></div>
+                  </>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-700">Total à payer:</span>
                   <span className="text-xl font-bold text-blue-600">
-                    {getTotalPrice() ? getTotalPrice().toLocaleString() : '0'} FCFA
+                    {getTotalWithDelivery().toLocaleString()} FCFA
                   </span>
                 </div>
               </div>
