@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
+// Déclaration globale pour Google Maps
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 interface GoogleAddressAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -32,7 +39,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
       }
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&v=weekly`;
       script.async = true;
       script.defer = true;
       script.onload = () => initAutocomplete();
@@ -44,7 +51,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
 
       try {
         // Utiliser la nouvelle API PlaceAutocompleteElement (recommandée par Google)
-        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places") as any;
+        const { PlaceAutocompleteElement } = await window.google.maps.importLibrary("places") as any;
 
         const autocomplete = new PlaceAutocompleteElement({
           componentRestrictions: { country: "sn" },
