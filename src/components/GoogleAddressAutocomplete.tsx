@@ -1,7 +1,4 @@
-import React, { useState, useRef } from 'react';
-import { useLoadScript, Autocomplete } from '@react-google-maps/api';
-
-const libraries: ("places")[] = ["places"];
+import React, { useEffect, useRef } from 'react';
 
 interface GoogleAddressAutocompleteProps {
   value: string;
@@ -18,33 +15,71 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   className = ""
 }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Ne charger Google Maps que si la clé API est valide
   const shouldLoadMaps = apiKey && apiKey !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey || "",
-    libraries,
-    preventGoogleFontsLoading: true,
-  });
+  useEffect(() => {
+    if (!shouldLoadMaps) return;
 
-  const onLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
-    setAutocomplete(autocompleteInstance);
-  };
-
-  const onPlaceChanged = () => {
-    if (autocomplete) {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        onChange(place.formatted_address);
+    // Charger le script Google Maps avec le nouveau Extended Component Library
+    const loadGoogleMapsScript = () => {
+      if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        initAutocomplete();
+        return;
       }
-    }
-  };
 
-  // Fallback: input simple si pas de clé API ou erreur de chargement
-  if (!shouldLoadMaps || loadError) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => initAutocomplete();
+      document.head.appendChild(script);
+    };
+
+    const initAutocomplete = async () => {
+      if (!inputRef.current) return;
+
+      try {
+        // Utiliser la nouvelle API PlaceAutocompleteElement (recommandée par Google)
+        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places") as any;
+
+        const autocomplete = new PlaceAutocompleteElement({
+          componentRestrictions: { country: "sn" },
+        });
+
+        autocomplete.addEventListener('gmp-placeselect', async ({ place }: any) => {
+          await place.fetchFields({ fields: ['formattedAddress'] });
+          if (place.formattedAddress) {
+            onChange(place.formattedAddress);
+          }
+        });
+
+        // Remplacer l'input par le composant autocomplete
+        if (inputRef.current.parentNode) {
+          autocomplete.className = className;
+          autocomplete.placeholder = placeholder;
+          inputRef.current.parentNode.replaceChild(autocomplete, inputRef.current);
+          autocompleteRef.current = autocomplete;
+        }
+      } catch (error) {
+        console.error('Erreur initialisation Google Maps:', error);
+      }
+    };
+
+    loadGoogleMapsScript();
+
+    return () => {
+      if (autocompleteRef.current) {
+        autocompleteRef.current.remove();
+      }
+    };
+  }, [shouldLoadMaps, apiKey, className, placeholder, onChange]);
+
+  // Fallback: input simple si pas de clé API
+  if (!shouldLoadMaps) {
     return (
       <input
         ref={inputRef}
@@ -57,39 +92,16 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
     );
   }
 
-  // Loading state
-  if (!isLoaded) {
-    return (
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={className}
-        placeholder="Chargement..."
-        disabled
-      />
-    );
-  }
-
-  // Google Maps Autocomplete
+  // Input initial qui sera remplacé par PlaceAutocompleteElement
   return (
-    <Autocomplete
-      onLoad={onLoad}
-      onPlaceChanged={onPlaceChanged}
-      options={{
-        componentRestrictions: { country: "sn" },
-        types: ["address"],
-      }}
-    >
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={className}
-        placeholder={placeholder}
-      />
-    </Autocomplete>
+    <input
+      ref={inputRef}
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={className}
+      placeholder={placeholder}
+    />
   );
 };
 
