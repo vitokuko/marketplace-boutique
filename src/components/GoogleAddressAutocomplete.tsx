@@ -64,12 +64,42 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
           }
         });
 
+        // Appliquer les styles directement au web component
+        autocomplete.style.width = '100%';
+
         // Remplacer l'input par le composant autocomplete
         if (inputRef.current.parentNode) {
-          autocomplete.className = className;
-          autocomplete.placeholder = placeholder;
           inputRef.current.parentNode.replaceChild(autocomplete, inputRef.current);
           autocompleteRef.current = autocomplete;
+
+          // Ajouter les styles CSS directement
+          const style = document.createElement('style');
+          style.textContent = `
+            gmp-place-autocomplete {
+              width: 100%;
+            }
+            gmp-place-autocomplete input {
+              width: 100% !important;
+              padding: 0.5rem 0.75rem !important;
+              border: 1px solid #d1d5db !important;
+              border-radius: 0.5rem !important;
+              outline: none !important;
+              font-size: 1rem !important;
+              line-height: 1.5rem !important;
+              color: #1f2937 !important;
+              background-color: white !important;
+            }
+            gmp-place-autocomplete input:focus {
+              outline: 2px solid transparent !important;
+              outline-offset: 2px !important;
+              box-shadow: 0 0 0 2px #3b82f6 !important;
+              border-color: #3b82f6 !important;
+            }
+            gmp-place-autocomplete input.border-red-500 {
+              border-color: #ef4444 !important;
+            }
+          `;
+          document.head.appendChild(style);
         }
       } catch (error) {
         console.error('Erreur initialisation Google Maps:', error);
