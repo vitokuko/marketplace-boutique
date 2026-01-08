@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { livraisonService } from '../services/livraisonService';
-import type { ConfigurationMarchand } from '../models/livraison-models';
 import OrderForm from './OrderForm';
-import FreeDeliveryBanner from './FreeDeliveryBanner';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -14,18 +11,6 @@ interface CartModalProps {
 const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { items, updateQuantity, removeFromCart, clearCart, getTotalPrice } = useCart();
   const [orderFormOpen, setOrderFormOpen] = useState(false);
-  const [configMarchand, setConfigMarchand] = useState<ConfigurationMarchand | null>(null);
-
-  useEffect(() => {
-    const loadConfig = async () => {
-      const config = await livraisonService.getConfigurationMarchand(1);
-      setConfigMarchand(config);
-    };
-    
-    if (isOpen) {
-      loadConfig();
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -63,14 +48,6 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <>
-              {configMarchand?.livraisonGratuite && configMarchand.seuilLivraisonGratuite && (
-                <FreeDeliveryBanner
-                  currentTotal={getTotalPrice()}
-                  freeDeliveryThreshold={configMarchand.seuilLivraisonGratuite || 0}
-                  isEligible={getTotalPrice() >= (configMarchand.seuilLivraisonGratuite || 0)}
-                />
-              )}
-
               <div className="space-y-4 mb-6">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between border-b border-gray-200 pb-4">
@@ -124,15 +101,6 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                       {getTotalPrice() ? getTotalPrice().toLocaleString() : '0'} FCFA
                     </span>
                   </div>
-                  {configMarchand?.livraisonGratuite && configMarchand.seuilLivraisonGratuite &&
-                   getTotalPrice() >= (configMarchand.seuilLivraisonGratuite || 0) && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <div className="flex justify-between items-center text-green-600">
-                        <span className="font-medium">Livraison:</span>
-                        <span className="font-bold">Gratuite 🎉</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
                 
                 <div className="flex space-x-4">
