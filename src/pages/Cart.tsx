@@ -341,17 +341,18 @@ const Cart: React.FC = () => {
                   {isCalculatingDelivery && (
                     <div className="mt-2 flex items-center text-blue-600 text-sm">
                       <Loader2 className="animate-spin mr-2" size={16} />
-                      Calcul des frais de livraison...
+                      Calcul des frais de livraison via Paps...
                     </div>
                   )}
 
                   {deliveryInfo && deliveryFee > 0 && (
                     <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <span className="font-semibold">Frais de livraison:</span> {deliveryFee.toLocaleString()} FCFA
-                      </p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        Distance: {(deliveryInfo.distance! / 1000).toFixed(2)} km • Taille: {deliveryInfo.packageSize}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-blue-700 uppercase">Livraison par Paps</span>
+                        <span className="text-sm font-bold text-blue-900">{deliveryFee.toLocaleString()} FCFA</span>
+                      </div>
+                      <p className="text-xs text-blue-600">
+                        📍 Distance: {(deliveryInfo.distance! / 1000).toFixed(2)} km • 📦 Taille: {deliveryInfo.packageSize}
                       </p>
                     </div>
                   )}
@@ -365,23 +366,21 @@ const Cart: React.FC = () => {
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                {deliveryFee > 0 && (
-                  <>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Sous-total:</span>
-                      <span className="font-medium text-gray-700">
-                        {getTotalPrice().toLocaleString()} FCFA
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Frais de livraison:</span>
-                      <span className="font-medium text-gray-700">
-                        {deliveryFee.toLocaleString()} FCFA
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-300 pt-2"></div>
-                  </>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Sous-total produits:</span>
+                  <span className="font-medium text-gray-700">
+                    {getTotalPrice().toLocaleString()} FCFA
+                  </span>
+                </div>
+                {orderForm.typeRecuperation === 'domicile' && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Livraison (Paps):</span>
+                    <span className="font-medium text-gray-700">
+                      {deliveryFee > 0 ? `${deliveryFee.toLocaleString()} FCFA` : 'Calcul en cours...'}
+                    </span>
+                  </div>
                 )}
+                <div className="border-t border-gray-300 pt-2"></div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-gray-700">Total à payer:</span>
                   <span className="text-xl font-bold text-blue-600">
