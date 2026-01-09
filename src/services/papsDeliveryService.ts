@@ -32,7 +32,10 @@ class PapsDeliveryService {
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur lors du calcul des frais: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        const errorMessage = errorData?.detail || 'Impossible de calculer les frais de livraison';
+
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -43,11 +46,8 @@ class PapsDeliveryService {
       };
     } catch (error) {
       console.error('Erreur calculateDeliveryFee:', error);
-      // Retourner des frais par défaut en cas d'erreur
-      return {
-        fraisLivraison: 0,
-        zoneDetectee: null,
-      };
+      // Propager l'erreur pour que le composant puisse l'afficher
+      throw error;
     }
   }
 

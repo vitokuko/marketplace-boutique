@@ -18,11 +18,13 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
   const [adresse, setAdresse] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
   const [lastCalculatedAddress, setLastCalculatedAddress] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleCalculateFees = async (addressToCalculate: string) => {
     // Éviter de recalculer si l'adresse n'a pas changé
     if (addressToCalculate.trim().length > 5 && addressToCalculate !== lastCalculatedAddress) {
       setIsCalculating(true);
+      setError(null);
       try {
         const result = await papsDeliveryService.calculateDeliveryFee({
           adresse: addressToCalculate,
@@ -51,6 +53,8 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
         setLastCalculatedAddress(addressToCalculate);
       } catch (error) {
         console.error('Erreur calcul frais:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors du calcul des frais de livraison';
+        setError(errorMessage);
       } finally {
         setIsCalculating(false);
       }
@@ -76,6 +80,11 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
       />
       {isCalculating && (
         <p className="text-sm text-blue-600 mt-1">Calcul des frais de livraison en cours...</p>
+      )}
+      {error && (
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
       )}
     </div>
   );
