@@ -156,6 +156,7 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
         className={className}
         placeholder={placeholder}
         autoComplete="off"
+        readOnly={false}
       />
 
       {showDropdown && predictions.length > 0 && (

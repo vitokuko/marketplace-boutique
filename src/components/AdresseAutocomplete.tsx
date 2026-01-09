@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { papsDeliveryService } from '../services/papsDeliveryService';
 import type { AdresseLivraison, CalculPrixLivraison } from '../models/livraison-models';
 import GoogleAddressAutocomplete from './GoogleAddressAutocomplete';
@@ -18,7 +18,6 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
   const [adresse, setAdresse] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
   const [lastCalculatedAddress, setLastCalculatedAddress] = useState('');
-  const debounceTimerRef = useRef<number | null>(null);
 
   const handleCalculateFees = async (addressToCalculate: string) => {
     // Éviter de recalculer si l'adresse n'a pas changé
@@ -58,33 +57,11 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
     }
   };
 
-  // Effet pour déclencher automatiquement le calcul après la saisie
-  useEffect(() => {
-    // Annuler le timer précédent
-    if (debounceTimerRef.current) {
-      window.clearTimeout(debounceTimerRef.current);
-    }
-
-    // Si l'adresse a plus de 5 caractères, déclencher le calcul après 1.5 secondes
-    if (adresse.trim().length > 5) {
-      debounceTimerRef.current = window.setTimeout(() => {
-        handleCalculateFees(adresse);
-      }, 1500);
-    }
-
-    // Cleanup
-    return () => {
-      if (debounceTimerRef.current) {
-        window.clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [adresse]);
+  // Note: On ne déclenche plus automatiquement le calcul sur la saisie manuelle
+  // Le calcul ne se fait que lors de la sélection d'une suggestion Google Maps
 
   const handleAddressSelected = () => {
     // Quand une adresse est sélectionnée depuis Google Maps, calculer immédiatement
-    if (debounceTimerRef.current) {
-      window.clearTimeout(debounceTimerRef.current);
-    }
     handleCalculateFees(adresse);
   };
 
