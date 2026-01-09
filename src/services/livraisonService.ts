@@ -127,32 +127,41 @@ class LivraisonService {
 
   getOptionsLivraison(calculPrix: CalculPrixLivraison, config?: ConfigurationMarchand, totalCommande?: number): OptionsLivraison[] {
     const options: OptionsLivraison[] = [];
-    
-    const livraisonGratuite = config?.livraisonGratuite && 
-      totalCommande && 
-      config.seuilLivraisonGratuite && 
+
+    const livraisonGratuite = config?.livraisonGratuite &&
+      totalCommande &&
+      config.seuilLivraisonGratuite &&
       totalCommande >= config.seuilLivraisonGratuite;
 
+    // Pour le moment, on ne propose que la livraison Standard via Paps API
     options.push({
       type: 'STANDARD',
       prix: livraisonGratuite ? 0 : calculPrix.tarifStandard,
-      dureeEstimee: '24-48h',
+      dureeEstimee: calculPrix.dureeEstimee || '24-48h',
       description: livraisonGratuite ? 'Livraison gratuite (commande éligible)' : 'Livraison standard'
     });
 
-    options.push({
-      type: 'EXPRESS',
-      prix: calculPrix.tarifExpress,
-      dureeEstimee: '4-8h',
-      description: 'Livraison express (même jour)'
-    });
+    // Express et Urgent désactivés temporairement
+    // TODO: Réactiver quand Paps API supportera ces types
+    /*
+    if (calculPrix.tarifExpress > 0) {
+      options.push({
+        type: 'EXPRESS',
+        prix: calculPrix.tarifExpress,
+        dureeEstimee: '4-8h',
+        description: 'Livraison express (même jour)'
+      });
+    }
 
-    options.push({
-      type: 'URGENT',
-      prix: calculPrix.tarifUrgent,
-      dureeEstimee: '1-2h',
-      description: 'Livraison urgente'
-    });
+    if (calculPrix.tarifUrgent > 0) {
+      options.push({
+        type: 'URGENT',
+        prix: calculPrix.tarifUrgent,
+        dureeEstimee: '1-2h',
+        description: 'Livraison urgente'
+      });
+    }
+    */
 
     return options;
   }

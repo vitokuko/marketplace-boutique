@@ -10,7 +10,7 @@ declare global {
 interface GoogleAddressAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  onAddressSelected?: () => void;
+  onAddressSelected?: (address: string) => void;
   placeholder?: string;
   className?: string;
   error?: string;
@@ -115,14 +115,15 @@ const GoogleAddressAutocomplete: React.FC<GoogleAddressAutocompleteProps> = ({
   };
 
   const handleSelectPrediction = (prediction: Prediction) => {
-    onChange(prediction.description);
+    const selectedAddress = prediction.description;
+    onChange(selectedAddress);
     setPredictions([]);
     setShowDropdown(false);
 
-    // Déclencher le callback après sélection
+    // Déclencher le callback immédiatement avec l'adresse sélectionnée
     if (onAddressSelected) {
       setTimeout(() => {
-        onAddressSelected();
+        onAddressSelected(selectedAddress);
       }, 100);
     }
   };

@@ -43,8 +43,8 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
           zoneId: 1,
           zoneName: result.zoneDetectee || 'Zone détectée',
           tarifStandard: result.fraisLivraison,
-          tarifExpress: result.fraisLivraison * 1.5,
-          tarifUrgent: result.fraisLivraison * 2,
+          tarifExpress: 0, // Désactivé pour le moment
+          tarifUrgent: 0,  // Désactivé pour le moment
           distance: 0,
           dureeEstimee: result.estimatedTime || '30-60 min'
         };
@@ -64,9 +64,9 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
   // Note: On ne déclenche plus automatiquement le calcul sur la saisie manuelle
   // Le calcul ne se fait que lors de la sélection d'une suggestion Google Maps
 
-  const handleAddressSelected = () => {
+  const handleAddressSelected = (selectedAddress: string) => {
     // Quand une adresse est sélectionnée depuis Google Maps, calculer immédiatement
-    handleCalculateFees(adresse);
+    handleCalculateFees(selectedAddress);
   };
 
   return (
