@@ -5,6 +5,7 @@ import GoogleAddressAutocomplete from './GoogleAddressAutocomplete';
 
 interface AdresseAutocompleteProps {
   onAdresseSelect: (adresse: AdresseLivraison, calculPrix: CalculPrixLivraison | null) => void;
+  onCalculatingChange?: (isCalculating: boolean) => void;
   placeholder?: string;
   className?: string;
   showZoneTariffs?: boolean;
@@ -12,6 +13,7 @@ interface AdresseAutocompleteProps {
 
 const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
   onAdresseSelect,
+  onCalculatingChange,
   placeholder = "Entrez votre adresse de livraison...",
   className = ""
 }) => {
@@ -24,6 +26,7 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
     // Éviter de recalculer si l'adresse n'a pas changé
     if (addressToCalculate.trim().length > 5 && addressToCalculate !== lastCalculatedAddress) {
       setIsCalculating(true);
+      onCalculatingChange?.(true);
       setError(null);
       try {
         const result = await papsDeliveryService.calculateDeliveryFee({
@@ -57,6 +60,7 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
         setError(errorMessage);
       } finally {
         setIsCalculating(false);
+        onCalculatingChange?.(false);
       }
     }
   };
@@ -79,7 +83,10 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
       />
       {isCalculating && (
-        <p className="text-sm text-blue-600 mt-1">Calcul des frais de livraison en cours...</p>
+        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <p className="text-sm text-blue-600 font-medium">Calcul des frais de livraison en cours...</p>
+        </div>
       )}
       {error && (
         <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">

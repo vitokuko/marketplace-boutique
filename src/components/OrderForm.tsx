@@ -17,6 +17,7 @@ interface OrderFormProps {
 const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => {
   const { items, getTotalPrice, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     clientNom: '',
@@ -27,7 +28,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     commentaire: ''
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
-  
+
   const [adresseLivraison, setAdresseLivraison] = useState<AdresseLivraison | null>(null);
   const [calculPrixLivraison, setCalculPrixLivraison] = useState<CalculPrixLivraison | null>(null);
   const [optionsLivraison, setOptionsLivraison] = useState<OptionsLivraison[]>([]);
@@ -164,6 +165,21 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     }
   };
 
+  // Vérifier si le formulaire est valide
+  const isFormValid = () => {
+    if (!formData.clientNom.trim() || !formData.clientTelephone.trim()) {
+      return false;
+    }
+
+    if (formData.typeRecuperation === 'domicile') {
+      if (!adresseLivraison || !calculPrixLivraison || isCalculatingPrice) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleLivraisonOptionSelect = (type: string, prix: number) => {
     setSelectedLivraisonType(type);
     setPrixLivraison(prix);
@@ -285,6 +301,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
                 </label>
                 <AdresseAutocomplete
                   onAdresseSelect={handleAdresseSelect}
+                  onCalculatingChange={setIsCalculatingPrice}
                   placeholder="Recherchez votre adresse..."
                   className={errors.adresse ? 'border-red-500' : ''}
                 />
@@ -380,10 +397,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 bg-gradient-to-r from-[#389EBF] to-[#3B82F6] text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+              disabled={loading || !isFormValid()}
+              className="flex-1 bg-gradient-to-r from-[#389EBF] to-[#3B82F6] text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Traitement...' : 'Confirmer'}
+              {loading ? 'Traitement...' : isCalculatingPrice ? 'Calcul en cours...' : 'Confirmer'}
             </button>
           </div>
         </form>
