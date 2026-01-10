@@ -7,6 +7,7 @@ import { livraisonService } from '../services/livraisonService';
 import type { AdresseLivraison, CalculPrixLivraison, OptionsLivraison, ConfigurationMarchand } from '../models/livraison-models';
 import AdresseAutocomplete from './AdresseAutocomplete';
 import OptionsLivraisonComponent from './OptionsLivraison';
+import { formatPhoneNumber } from '../utils/phoneFormatter';
 
 interface OrderFormProps {
   isOpen: boolean;
@@ -87,10 +88,14 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
     try {
       setSubmitError(null);
+
+      // Formater le numéro de téléphone avec l'indicatif international
+      const formattedPhone = formatPhoneNumber(formData.clientTelephone, 'SN');
+
       const orderData: OrderData = {
         clientNom: formData.clientNom,
         clientEmail: formData.clientEmail,
-        clientTelephone: formData.clientTelephone,
+        clientTelephone: formattedPhone,  // Utiliser le numéro formaté
         adresse: formData.typeRecuperation === 'domicile' ? adresseLivraison?.adresseComplete || '' : '',
         typeRecuperation: formData.typeRecuperation,
         commentaire: formData.commentaire,
