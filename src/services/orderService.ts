@@ -15,6 +15,8 @@ export interface OrderData {
   }[];
   total: number;
   fraisLivraison?: number;
+  modeLivraison?: 'paps' | 'zones';
+  typeLivraisonZone?: 'STANDARD' | 'EXPRESS' | 'URGENT';
 }
 
 export interface DeliveryFeeRequest {
@@ -68,7 +70,9 @@ export const createOrder = async (orderData: OrderData): Promise<Order> => {
         prixUnitaire: item.prixUnitaire
       })),
       total: orderData.total,
-      fraisLivraison: orderData.fraisLivraison
+      fraisLivraison: orderData.fraisLivraison,
+      modeLivraison: orderData.modeLivraison,
+      typeLivraisonZone: orderData.typeLivraisonZone
     };
 
     //console.log('Données envoyées à l\'API:', backendOrderData);

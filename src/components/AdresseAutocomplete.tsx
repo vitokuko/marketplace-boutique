@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { papsDeliveryService } from '../services/papsDeliveryService';
-import type { AdresseLivraison, CalculPrixLivraison } from '../models/livraison-models';
+import type { AdresseLivraison } from '../models/livraison-models';
 import GoogleAddressAutocomplete from './GoogleAddressAutocomplete';
 
 interface AdresseAutocompleteProps {
-  onAdresseSelect: (adresse: AdresseLivraison, calculPrix: CalculPrixLivraison | null) => void;
+  onAdresseSelect: (adresse: AdresseLivraison) => void;
   onCalculatingChange?: (isCalculating: boolean) => void;
   placeholder?: string;
   className?: string;
@@ -29,34 +28,18 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
       onCalculatingChange?.(true);
       setError(null);
       try {
-        const result = await papsDeliveryService.calculateDeliveryFee({
-          adresse: addressToCalculate,
-          typeRecuperation: 'domicile',
-          boutiqueId: 1
-        });
-
         const adresseLivraison: AdresseLivraison = {
           adresseComplete: addressToCalculate,
-          quartier: result.zoneDetectee || '',
+          quartier: '',
           ville: 'Dakar',
           pays: 'Sénégal'
         };
 
-        const calculPrix: CalculPrixLivraison = {
-          zoneId: 1,
-          zoneName: result.zoneDetectee || 'Zone détectée',
-          tarifStandard: result.fraisLivraison,
-          tarifExpress: 0, // Désactivé pour le moment
-          tarifUrgent: 0,  // Désactivé pour le moment
-          distance: 0,
-          dureeEstimee: result.estimatedTime || '30-60 min'
-        };
-
-        onAdresseSelect(adresseLivraison, calculPrix);
+        onAdresseSelect(adresseLivraison);
         setLastCalculatedAddress(addressToCalculate);
       } catch (error) {
-        console.error('Erreur calcul frais:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Erreur lors du calcul des frais de livraison';
+        console.error('Erreur:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la sélection de l\'adresse';
         setError(errorMessage);
       } finally {
         setIsCalculating(false);
@@ -85,7 +68,7 @@ const AdresseAutocomplete: React.FC<AdresseAutocompleteProps> = ({
       {isCalculating && (
         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <p className="text-sm text-blue-600 font-medium">Calcul des frais de livraison en cours...</p>
+          <p className="text-sm text-blue-600 font-medium">Calcul des options de livraison en cours...</p>
         </div>
       )}
       {error && (

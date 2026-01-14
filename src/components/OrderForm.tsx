@@ -3,8 +3,9 @@ import { X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder, convertCartToOrderItems } from '../services/orderService';
 import type { OrderData } from '../services/orderService';
-import { livraisonService } from '../services/livraisonService';
-import type { AdresseLivraison, CalculPrixLivraison, OptionsLivraison, ConfigurationMarchand } from '../models/livraison-models';
+import { papsDeliveryService } from '../services/papsDeliveryService';
+import type { PapsOption, ZonesOption } from '../services/papsDeliveryService';
+import type { AdresseLivraison } from '../models/livraison-models';
 import AdresseAutocomplete from './AdresseAutocomplete';
 import OptionsLivraisonComponent from './OptionsLivraison';
 import { formatPhoneNumber } from '../utils/phoneFormatter';
@@ -31,27 +32,12 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const [adresseLivraison, setAdresseLivraison] = useState<AdresseLivraison | null>(null);
-  const [calculPrixLivraison, setCalculPrixLivraison] = useState<CalculPrixLivraison | null>(null);
-  const [optionsLivraison, setOptionsLivraison] = useState<OptionsLivraison[]>([]);
-  const [selectedLivraisonType, setSelectedLivraisonType] = useState<string>('STANDARD');
+  const [papsOption, setPapsOption] = useState<PapsOption | null>(null);
+  const [zonesOption, setZonesOption] = useState<ZonesOption | null>(null);
+  const [livraisonGratuiteApplicable, setLivraisonGratuiteApplicable] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<'paps' | 'zones' | null>(null);
+  const [selectedZoneType, setSelectedZoneType] = useState<'STANDARD' | 'EXPRESS' | 'URGENT' | null>(null);
   const [prixLivraison, setPrixLivraison] = useState<number>(0);
-  const [configMarchand, setConfigMarchand] = useState<ConfigurationMarchand | null>(null);
-  const [showFreeDeliveryInfo, setShowFreeDeliveryInfo] = useState(false);
-
-  useEffect(() => {
-    const loadMarchandConfig = async () => {
-      const config = await livraisonService.getConfigurationMarchand(1);
-      setConfigMarchand(config);
-      
-      if (config?.livraisonGratuite && config.seuilLivraisonGratuite) {
-        setShowFreeDeliveryInfo(getTotalPrice() >= (config.seuilLivraisonGratuite || 0));
-      }
-    };
-    
-    if (isOpen) {
-      loadMarchandConfig();
-    }
-  }, [isOpen, getTotalPrice]);
 
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -68,8 +54,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
       if (!adresseLivraison) {
         newErrors.adresse = 'Veuillez sélectionner une adresse de livraison';
       }
-      if (!calculPrixLivraison) {
-        newErrors.adresse = 'Impossible de calculer le prix de livraison';
+      if (!selectedMode) {
+        newErrors.adresse = 'Veuillez sélectionner un mode de livraison';
       }
     }
     
@@ -101,7 +87,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
         commentaire: formData.commentaire,
         items: convertCartToOrderItems(items),
         total: getTotalPrice() + prixLivraison,
-        fraisLivraison: formData.typeRecuperation === 'domicile' ? prixLivraison : 0
+        fraisLivraison: formData.typeRecuperation === 'domicile' ? prixLivraison : 0,
+        modeLivraison: selectedMode || undefined,
+        typeLivraisonZone: selectedMode === 'zones' ? selectedZoneType || undefined : undefined
       };
 
       const order = await createOrder(orderData);
@@ -125,44 +113,57 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     
     if (type === 'boutique') {
       setAdresseLivraison(null);
-      setCalculPrixLivraison(null);
-      setOptionsLivraison([]);
+      setPapsOption(null);
+      setZonesOption(null);
+      setLivraisonGratuiteApplicable(false);
+      setSelectedMode(null);
+      setSelectedZoneType(null);
       setPrixLivraison(0);
     }
-    
+
     if (errors.adresse && type === 'boutique') {
       setErrors(prev => ({ ...prev, adresse: '' }));
     }
   };
 
-  const handleAdresseSelect = async (adresse: AdresseLivraison, calculPrix: CalculPrixLivraison | null) => {
+  const handleAdresseSelect = async (adresse: AdresseLivraison) => {
     setAdresseLivraison(adresse);
-    setCalculPrixLivraison(calculPrix);
 
-    if (calculPrix) {
-      const options = livraisonService.getOptionsLivraison(calculPrix, configMarchand || undefined, getTotalPrice());
-      setOptionsLivraison(options);
+    try {
+      // Appeler la nouvelle API qui retourne les deux options
+      const allOptions = await papsDeliveryService.getAllDeliveryOptions({
+        adresse: adresse.adresseComplete,
+        typeRecuperation: 'domicile',
+        boutiqueId: 1, // TODO: Récupérer l'ID dynamiquement
+        totalCommande: getTotalPrice()
+      });
 
-      const standardOption = options.find(opt => opt.type === 'STANDARD');
-      if (standardOption) {
-        setSelectedLivraisonType('STANDARD');
-        setPrixLivraison(standardOption.prix);
+      setPapsOption(allOptions.paps);
+      setZonesOption(allOptions.zones);
+      setLivraisonGratuiteApplicable(allOptions.livraison_gratuite_applicable);
+
+      // Sélectionner automatiquement la première option disponible
+      if (allOptions.paps.disponible && allOptions.paps.tarif !== null) {
+        setSelectedMode('paps');
+        setSelectedZoneType(null);
+        setPrixLivraison(allOptions.paps.tarif);
+      } else if (allOptions.zones.disponible && allOptions.zones.tarif !== null) {
+        setSelectedMode('zones');
+        setSelectedZoneType('STANDARD');
+        setPrixLivraison(allOptions.livraison_gratuite_applicable ? 0 : allOptions.zones.tarif);
       } else {
-        setPrixLivraison(calculPrix.tarifStandard);
+        setSelectedMode(null);
+        setSelectedZoneType(null);
+        setPrixLivraison(0);
       }
-    } else {
-      try {
-        const zonesData = await livraisonService.getZonesForAutocomplete();
-        if (zonesData.length > 0) {
-          const defaultZone = zonesData[0];
-          setPrixLivraison(defaultZone.zone.tarifStandard);
-        } else {
-          setPrixLivraison(1500);
-        }
-      } catch (error) {
-        //console.error('Error getting zones data:', error);
-        setPrixLivraison(1500);
-      }
+    } catch (error) {
+      console.error('Erreur lors du calcul des options de livraison:', error);
+      setPapsOption(null);
+      setZonesOption(null);
+      setLivraisonGratuiteApplicable(false);
+      setSelectedMode(null);
+      setSelectedZoneType(null);
+      setPrixLivraison(0);
     }
 
     if (errors.adresse) {
@@ -177,7 +178,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     }
 
     if (formData.typeRecuperation === 'domicile') {
-      if (!adresseLivraison || !calculPrixLivraison || isCalculatingPrice) {
+      if (!adresseLivraison || !selectedMode || isCalculatingPrice) {
         return false;
       }
     }
@@ -185,8 +186,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     return true;
   };
 
-  const handleLivraisonOptionSelect = (type: string, prix: number) => {
-    setSelectedLivraisonType(type);
+  const handleLivraisonOptionSelect = (mode: 'paps' | 'zones', prix: number, zoneType?: 'STANDARD' | 'EXPRESS' | 'URGENT') => {
+    setSelectedMode(mode);
+    setSelectedZoneType(zoneType || null);
     setPrixLivraison(prix);
   };
 
@@ -315,23 +317,16 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
                 )}
               </div>
 
-              {optionsLivraison.length > 0 && (
+              {(papsOption || zonesOption) && (
                 <div>
                   <OptionsLivraisonComponent
-                    options={optionsLivraison}
-                    selectedOption={selectedLivraisonType}
+                    papsOption={papsOption}
+                    zonesOption={zonesOption}
+                    livraisonGratuiteApplicable={livraisonGratuiteApplicable}
+                    selectedMode={selectedMode}
+                    selectedZoneType={selectedZoneType}
                     onOptionSelect={handleLivraisonOptionSelect}
-                    showFreeDeliveryBadge={showFreeDeliveryInfo}
                   />
-                </div>
-              )}
-
-              {showFreeDeliveryInfo && configMarchand?.seuilLivraisonGratuite && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-green-800 text-sm">
-                    🎉 Félicitations ! Votre commande est éligible à la livraison gratuite
-                    (minimum {configMarchand.seuilLivraisonGratuite ? configMarchand.seuilLivraisonGratuite.toLocaleString() : '0'} FCFA atteint)
-                  </p>
                 </div>
               )}
             </div>
