@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useShop } from '../context/ShopContext';
 import { createOrder, convertCartToOrderItems } from '../services/orderService';
 import type { OrderData } from '../services/orderService';
 import { papsDeliveryService } from '../services/papsDeliveryService';
@@ -18,6 +19,7 @@ interface OrderFormProps {
 
 const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => {
   const { items, getTotalPrice, clearCart } = useCart();
+  const { boutiqueId } = useShop();
   const [loading, setLoading] = useState(false);
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -134,7 +136,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
       const allOptions = await papsDeliveryService.getAllDeliveryOptions({
         adresse: adresse.adresseComplete,
         typeRecuperation: 'domicile',
-        boutiqueId: 1, // TODO: Récupérer l'ID dynamiquement
+        boutiqueId: boutiqueId || undefined,
         totalCommande: getTotalPrice()
       });
 
