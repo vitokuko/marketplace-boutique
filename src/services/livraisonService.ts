@@ -5,17 +5,20 @@ import { mockZones, getMarchandConfig, calculateDeliveryPrice } from './mockData
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 class LivraisonService {
-  async getZonesDisponibles(): Promise<ZoneLivraison[]> {
+  async getZonesDisponibles(boutiqueId?: number): Promise<ZoneLivraison[]> {
     try {
-      //console.log('Récupération des zones depuis l\'API...');
-      const response = await fetch(`${API_BASE_URL}/zones`);
+      // Construire l'URL avec le paramètre boutiqueId si fourni
+      let url = `${API_BASE_URL}/public/livreurs/zones`;
+      if (boutiqueId) {
+        url += `?boutiqueId=${boutiqueId}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
-        //console.error('Erreur API:', response.status, response.statusText);
         throw new Error(`Erreur lors du chargement des zones: ${response.status}`);
       }
 
       const zones = await response.json();
-      // console.log('Réponse API reçue:', zones);
 
       
       if (!Array.isArray(zones) || zones.length === 0) {
