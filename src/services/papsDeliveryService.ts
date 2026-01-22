@@ -30,6 +30,26 @@ export interface AllDeliveryOptionsResponse {
   livraison_gratuite_applicable: boolean;
 }
 
+// Configuration publique de livraison d'une boutique
+export interface ZonePublicInfo {
+  id: number;
+  nom: string;
+  description: string | null;
+  tarif: number;
+  tarif_express: number | null;
+  tarif_urgent: number | null;
+  temps_min: number | null;
+  temps_max: number | null;
+}
+
+export interface DeliveryConfigPublic {
+  paps_actif: boolean;
+  zones_actif: boolean;
+  livraison_gratuite: boolean;
+  seuil_livraison_gratuite: number | null;
+  zones: ZonePublicInfo[];
+}
+
 // Ancienne interface pour rétrocompatibilité
 export interface DeliveryFeeResponse {
   fraisLivraison: number;
@@ -113,14 +133,65 @@ class PapsDeliveryService {
    */
   async isDeliveryAvailable(adresse: string): Promise<boolean> {
     try {
-      const result = await this.calculateDeliveryFee({
+      const allOptions = await this.getAllDeliveryOptions({
         adresse,
         typeRecuperation: 'domicile',
       });
-      return result.fraisLivraison > 0 || result.zoneDetectee !== null;
+      return allOptions.paps.disponible || allOptions.zones.disponible;
     } catch (error) {
       console.error('Erreur isDeliveryAvailable:', error);
       return false;
+    }
+  }
+
+  /**
+   * Récupère la configuration de livraison publique d'une boutique
+   * Permet de savoir quels modes sont activés (Paps, Zones) et la liste des zones
+   */
+  async getDeliveryConfig(boutiqueId: number): Promise<DeliveryConfigPublic> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/public/orders/delivery-config/${boutiqueId}`);
+
+      if (!response.ok) {
+        console.error('Erreur getDeliveryConfig:', response.status);
+        // Retourner config par défaut en cas d'erreur
+        return {
+          paps_actif: false,
+          zones_actif: false,
+          livraison_gratuite: false,
+          seuil_livraison_gratuite: null,
+          zones: []
+        };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur getDeliveryConfig:', error);
+      return {
+        paps_actif: false,
+        zones_actif: false,
+        livraison_gratuite: false,
+        seuil_livraison_gratuite: null,
+        zones: []
+      };
+    }
+  }
+
+  /**
+   * Calcule les frais de livraison Paps pour une adresse
+   */
+  async calculatePapsDeliveryFee(request: DeliveryCalculationRequest): Promise<PapsOption> {
+    try {
+      const allOptions = await this.getAllDeliveryOptions(request);
+      return allOptions.paps;
+    } catch (error) {
+      console.error('Erreur calculatePapsDeliveryFee:', error);
+      return {
+        disponible: false,
+        tarif: null,
+        estimatedTime: null,
+        erreur: 'Erreur lors du calcul'
+      };
     }
   }
 }
