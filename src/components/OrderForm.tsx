@@ -32,35 +32,24 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  // Configuration de livraison de la boutique
   const [deliveryConfig, setDeliveryConfig] = useState<DeliveryConfigPublic | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(false);
-
-  // Mode de livraison sélectionné
   const [selectedDeliveryMode, setSelectedDeliveryMode] = useState<'paps' | 'zones' | null>(null);
-
-  // Pour Paps
   const [adresseLivraison, setAdresseLivraison] = useState<AdresseLivraison | null>(null);
   const [papsOption, setPapsOption] = useState<PapsOption | null>(null);
-
-  // Pour Zones
   const [selectedZone, setSelectedZone] = useState<ZonePublicInfo | null>(null);
   const [selectedZoneType, setSelectedZoneType] = useState<'STANDARD' | 'EXPRESS' | 'URGENT'>('STANDARD');
   const [zoneSearchQuery, setZoneSearchQuery] = useState('');
   const [showZoneDropdown, setShowZoneDropdown] = useState(false);
-
-  // Prix final de livraison
   const [prixLivraison, setPrixLivraison] = useState<number>(0);
   const [livraisonGratuiteApplicable, setLivraisonGratuiteApplicable] = useState(false);
 
-  // Charger la configuration de livraison au démarrage
   useEffect(() => {
     if (isOpen && boutiqueId) {
       loadDeliveryConfig();
     }
   }, [isOpen, boutiqueId]);
 
-  // Effect pour sélectionner auto le mode si un seul est actif
   useEffect(() => {
     if (deliveryConfig && formData.typeRecuperation === 'domicile') {
       if (deliveryConfig.paps_actif && !deliveryConfig.zones_actif) {
@@ -73,13 +62,10 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
   const loadDeliveryConfig = async () => {
     if (!boutiqueId) return;
-
     setLoadingConfig(true);
     try {
       const config = await papsDeliveryService.getDeliveryConfig(boutiqueId);
       setDeliveryConfig(config);
-
-      // Vérifier livraison gratuite
       if (config.livraison_gratuite && config.seuil_livraison_gratuite) {
         setLivraisonGratuiteApplicable(getTotalPrice() >= config.seuil_livraison_gratuite);
       }
@@ -92,15 +78,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
-
-    if (!formData.clientNom.trim()) {
-      newErrors.clientNom = 'Le nom complet est obligatoire';
-    }
-
-    if (!formData.clientTelephone.trim()) {
-      newErrors.clientTelephone = 'Le téléphone est obligatoire';
-    }
-
+    if (!formData.clientNom.trim()) newErrors.clientNom = 'Le nom complet est obligatoire';
+    if (!formData.clientTelephone.trim()) newErrors.clientTelephone = 'Le téléphone est obligatoire';
     if (formData.typeRecuperation === 'domicile') {
       if (!selectedDeliveryMode) {
         newErrors.deliveryMode = 'Veuillez sélectionner un mode de livraison';
@@ -110,26 +89,17 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
         newErrors.zone = 'Veuillez sélectionner une zone de livraison';
       }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setLoading(true);
-
     try {
       setSubmitError(null);
-
       const formattedPhone = formatPhoneNumber(formData.clientTelephone, 'SN');
-
-      // Déterminer l'adresse selon le mode
       let adresseFinale = '';
       if (formData.typeRecuperation === 'domicile') {
         if (selectedDeliveryMode === 'paps') {
@@ -138,7 +108,6 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
           adresseFinale = selectedZone.nom;
         }
       }
-
       const orderData: OrderData = {
         clientNom: formData.clientNom,
         clientEmail: formData.clientEmail,
@@ -152,7 +121,6 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
         modeLivraison: selectedDeliveryMode || undefined,
         typeLivraisonZone: selectedDeliveryMode === 'zones' ? selectedZoneType : undefined
       };
-
       const order = await createOrder(orderData);
       clearCart();
       onSuccess(order.id);
@@ -165,19 +133,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   };
 
   const handleRecuperationChange = (type: 'boutique' | 'domicile') => {
-    setFormData(prev => ({
-      ...prev,
-      typeRecuperation: type,
-      adresse: type === 'boutique' ? '' : prev.adresse
-    }));
-
-    if (type === 'boutique') {
-      resetDeliveryState();
-    }
-
-    if (errors.adresse && type === 'boutique') {
-      setErrors(prev => ({ ...prev, adresse: '' }));
-    }
+    setFormData(prev => ({ ...prev, typeRecuperation: type, adresse: type === 'boutique' ? '' : prev.adresse }));
+    if (type === 'boutique') resetDeliveryState();
+    if (errors.adresse && type === 'boutique') setErrors(prev => ({ ...prev, adresse: '' }));
   };
 
   const resetDeliveryState = () => {
@@ -192,24 +150,14 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
   const handleDeliveryModeChange = (mode: 'paps' | 'zones') => {
     setSelectedDeliveryMode(mode);
-    // Reset les données de l'autre mode
-    if (mode === 'paps') {
-      setSelectedZone(null);
-      setZoneSearchQuery('');
-      setPrixLivraison(0);
-    } else {
-      setAdresseLivraison(null);
-      setPapsOption(null);
-      setPrixLivraison(0);
-    }
+    if (mode === 'paps') { setSelectedZone(null); setZoneSearchQuery(''); setPrixLivraison(0); }
+    else { setAdresseLivraison(null); setPapsOption(null); setPrixLivraison(0); }
     setErrors(prev => ({ ...prev, deliveryMode: '', adresse: '', zone: '' }));
   };
 
-  // Gestion Paps
   const handleAdresseSelect = async (adresse: AdresseLivraison) => {
     setAdresseLivraison(adresse);
     setIsCalculatingPrice(true);
-
     try {
       const papsResult = await papsDeliveryService.calculatePapsDeliveryFee({
         adresse: adresse.adresseComplete,
@@ -217,14 +165,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
         boutiqueId: boutiqueId || undefined,
         totalCommande: getTotalPrice()
       });
-
       setPapsOption(papsResult);
-
-      if (papsResult.disponible && papsResult.tarif !== null) {
-        setPrixLivraison(papsResult.tarif);
-      } else {
-        setPrixLivraison(0);
-      }
+      if (papsResult.disponible && papsResult.tarif !== null) setPrixLivraison(papsResult.tarif);
+      else setPrixLivraison(0);
     } catch (error) {
       console.error('Erreur calcul Paps:', error);
       setPapsOption(null);
@@ -232,44 +175,27 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
     } finally {
       setIsCalculatingPrice(false);
     }
-
-    if (errors.adresse) {
-      setErrors(prev => ({ ...prev, adresse: '' }));
-    }
+    if (errors.adresse) setErrors(prev => ({ ...prev, adresse: '' }));
   };
 
-  // Gestion Zones
   const handleZoneSelect = (zone: ZonePublicInfo) => {
     setSelectedZone(zone);
     setZoneSearchQuery(zone.nom);
     setShowZoneDropdown(false);
     setSelectedZoneType('STANDARD');
-
-    // Calculer le prix selon le type et la livraison gratuite
-    const prix = livraisonGratuiteApplicable ? 0 : zone.tarif;
-    setPrixLivraison(prix);
-
-    if (errors.zone) {
-      setErrors(prev => ({ ...prev, zone: '' }));
-    }
+    setPrixLivraison(livraisonGratuiteApplicable ? 0 : zone.tarif);
+    if (errors.zone) setErrors(prev => ({ ...prev, zone: '' }));
   };
 
   const handleZoneTypeChange = (type: 'STANDARD' | 'EXPRESS' | 'URGENT') => {
     setSelectedZoneType(type);
-
     if (selectedZone) {
       let prix = 0;
       if (!livraisonGratuiteApplicable || type !== 'STANDARD') {
         switch (type) {
-          case 'STANDARD':
-            prix = selectedZone.tarif;
-            break;
-          case 'EXPRESS':
-            prix = selectedZone.tarif_express || selectedZone.tarif * 1.5;
-            break;
-          case 'URGENT':
-            prix = selectedZone.tarif_urgent || selectedZone.tarif * 2;
-            break;
+          case 'STANDARD': prix = selectedZone.tarif; break;
+          case 'EXPRESS': prix = selectedZone.tarif_express || selectedZone.tarif * 1.5; break;
+          case 'URGENT': prix = selectedZone.tarif_urgent || selectedZone.tarif * 2; break;
         }
       }
       setPrixLivraison(prix);
@@ -282,24 +208,18 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   ) || [];
 
   const isFormValid = () => {
-    if (!formData.clientNom.trim() || !formData.clientTelephone.trim()) {
-      return false;
-    }
-
+    if (!formData.clientNom.trim() || !formData.clientTelephone.trim()) return false;
     if (formData.typeRecuperation === 'domicile') {
       if (!selectedDeliveryMode) return false;
       if (selectedDeliveryMode === 'paps' && (!adresseLivraison || isCalculatingPrice)) return false;
       if (selectedDeliveryMode === 'zones' && !selectedZone) return false;
     }
-
     return true;
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
   if (!isOpen) return null;
@@ -307,49 +227,51 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   const hasMultipleDeliveryModes = deliveryConfig?.paps_actif && deliveryConfig?.zones_actif;
   const hasAnyDeliveryMode = deliveryConfig?.paps_actif || deliveryConfig?.zones_actif;
 
+  const inputClass = (hasError?: boolean) =>
+    `w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition-colors ${
+      hasError ? 'border-red-400' : 'border-gray-200 focus:border-gray-900'
+    }`;
+
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all duration-300" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-6">
-          <div className="flex-1"></div>
-          <h2 className="text-2xl font-bold text-gray-800 text-center">Finaliser la commande</h2>
-          <div className="flex-1 flex justify-end">
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              <X size={24} />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Finaliser la commande</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer">
+            <X size={20} strokeWidth={1.5} />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+
           {/* Nom et Email */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Nom complet <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.clientNom}
                 onChange={(e) => handleInputChange('clientNom', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.clientNom ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={inputClass(!!errors.clientNom)}
                 placeholder="Entrez votre nom complet"
               />
-              {errors.clientNom && (
-                <p className="text-red-500 text-sm mt-1">{errors.clientNom}</p>
-              )}
+              {errors.clientNom && <p className="text-red-500 text-xs mt-1">{errors.clientNom}</p>}
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email (facultatif)
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Email <span className="text-gray-400 font-normal">(facultatif)</span>
               </label>
               <input
                 type="email"
                 value={formData.clientEmail}
                 onChange={(e) => handleInputChange('clientEmail', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={inputClass()}
                 placeholder="Entrez votre email"
               />
             </div>
@@ -357,69 +279,56 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
           {/* Téléphone */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Téléphone <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               value={formData.clientTelephone}
               onChange={(e) => handleInputChange('clientTelephone', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.clientTelephone ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={inputClass(!!errors.clientTelephone)}
               placeholder="Entrez votre numéro de téléphone"
             />
-            {errors.clientTelephone && (
-              <p className="text-red-500 text-sm mt-1">{errors.clientTelephone}</p>
-            )}
+            {errors.clientTelephone && <p className="text-red-500 text-xs mt-1">{errors.clientTelephone}</p>}
           </div>
 
           {/* Mode de récupération */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mode de récupération
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Mode de récupération</label>
             <div className="grid grid-cols-2 gap-3">
-              <label className={`flex items-center p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                formData.typeRecuperation === 'boutique'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:bg-gray-50'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={formData.typeRecuperation === 'boutique'}
-                  onChange={() => handleRecuperationChange('boutique')}
-                  className="mr-2 w-4 h-4 text-blue-600 rounded"
-                />
-                <span className="text-sm font-medium text-gray-800">✅ En boutique</span>
-              </label>
-              <label className={`flex items-center p-2 border-2 rounded-lg cursor-pointer transition-all ${
-                formData.typeRecuperation === 'domicile'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:bg-gray-50'
-              }`}>
-                <input
-                  type="checkbox"
-                  checked={formData.typeRecuperation === 'domicile'}
-                  onChange={() => handleRecuperationChange('domicile')}
-                  className="mr-2 w-4 h-4 text-blue-600 rounded"
-                />
-                <span className="text-sm font-medium text-gray-800">🚚 À domicile</span>
-              </label>
+              {(['boutique', 'domicile'] as const).map((type) => (
+                <label
+                  key={type}
+                  className={`flex items-center gap-2.5 p-3 border rounded-xl cursor-pointer transition-all ${
+                    formData.typeRecuperation === type
+                      ? 'border-gray-900 bg-gray-50'
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.typeRecuperation === type}
+                    onChange={() => handleRecuperationChange(type)}
+                    className="w-4 h-4 accent-gray-900 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-800">
+                    {type === 'boutique' ? '🏪 En boutique' : '🚚 À domicile'}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
 
           {/* Section Livraison à domicile */}
           {formData.typeRecuperation === 'domicile' && (
-            <div className="space-y-4 border-t pt-4">
+            <div className="space-y-4 border-t border-gray-100 pt-4">
               {loadingConfig ? (
                 <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Chargement des options de livraison...</p>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="text-sm text-gray-400 mt-2">Chargement des options de livraison...</p>
                 </div>
               ) : (
                 <>
-                  {/* Sélection du mode de livraison si les deux sont disponibles */}
                   {hasMultipleDeliveryModes && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -429,79 +338,63 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
                         <button
                           type="button"
                           onClick={() => handleDeliveryModeChange('paps')}
-                          className={`p-4 border-2 rounded-lg text-left transition-all ${
-                            selectedDeliveryMode === 'paps'
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:bg-gray-50'
+                          className={`p-3 border rounded-xl text-left transition-all ${
+                            selectedDeliveryMode === 'paps' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <MapPin size={20} className="text-blue-600" />
-                            <span className="font-semibold">Livraison Paps</span>
+                            <MapPin size={16} strokeWidth={1.5} className="text-gray-600" />
+                            <span className="text-sm font-semibold text-gray-900">Livraison Paps</span>
                           </div>
-                          <p className="text-xs text-gray-500">Saisissez votre adresse exacte pour une livraison à domicile</p>
+                          <p className="text-xs text-gray-400">Adresse exacte pour livraison à domicile</p>
                         </button>
-
                         <button
                           type="button"
                           onClick={() => handleDeliveryModeChange('zones')}
-                          className={`p-4 border-2 rounded-lg text-left transition-all ${
-                            selectedDeliveryMode === 'zones'
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:bg-gray-50'
+                          className={`p-3 border rounded-xl text-left transition-all ${
+                            selectedDeliveryMode === 'zones' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <Package size={20} className="text-green-600" />
-                            <span className="font-semibold">Livraison par zone</span>
+                            <Package size={16} strokeWidth={1.5} className="text-gray-600" />
+                            <span className="text-sm font-semibold text-gray-900">Livraison par zone</span>
                           </div>
-                          <p className="text-xs text-gray-500">Sélectionnez votre zone parmi les zones définies</p>
+                          <p className="text-xs text-gray-400">Sélectionnez parmi les zones définies</p>
                         </button>
                       </div>
-                      {errors.deliveryMode && (
-                        <p className="text-red-500 text-sm mt-1">{errors.deliveryMode}</p>
-                      )}
+                      {errors.deliveryMode && <p className="text-red-500 text-xs mt-1">{errors.deliveryMode}</p>}
                     </div>
                   )}
 
                   {/* Interface PAPS */}
                   {selectedDeliveryMode === 'paps' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Adresse de livraison <span className="text-red-500">*</span>
                         </label>
                         <AdresseAutocomplete
                           onAdresseSelect={handleAdresseSelect}
                           onCalculatingChange={setIsCalculatingPrice}
                           placeholder="Recherchez votre adresse..."
-                          className={errors.adresse ? 'border-red-500' : ''}
+                          className={errors.adresse ? 'border-red-400' : ''}
                         />
-                        {errors.adresse && (
-                          <p className="text-red-500 text-sm mt-1">{errors.adresse}</p>
-                        )}
+                        {errors.adresse && <p className="text-red-500 text-xs mt-1">{errors.adresse}</p>}
                       </div>
-
-                      {/* Affichage option Paps */}
                       {papsOption && papsOption.disponible && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-semibold text-blue-800">Livraison Paps</p>
-                              {papsOption.estimatedTime && (
-                                <p className="text-sm text-blue-600">Délai estimé: {papsOption.estimatedTime}</p>
-                              )}
-                            </div>
-                            <p className="text-xl font-bold text-blue-800">
-                              {papsOption.tarif?.toLocaleString()} FCFA
-                            </p>
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">Livraison Paps</p>
+                            {papsOption.estimatedTime && (
+                              <p className="text-xs text-gray-500">Délai estimé : {papsOption.estimatedTime}</p>
+                            )}
                           </div>
+                          <p className="text-sm font-bold text-gray-900">{papsOption.tarif?.toLocaleString('fr-FR')} Fcfa</p>
                         </div>
                       )}
-
                       {papsOption && !papsOption.disponible && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                          <p className="text-red-800">{papsOption.erreur || 'Livraison Paps non disponible pour cette adresse'}</p>
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                          <p className="text-sm text-red-700">{papsOption.erreur || 'Livraison Paps non disponible pour cette adresse'}</p>
                         </div>
                       )}
                     </div>
@@ -509,62 +402,56 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
                   {/* Interface ZONES */}
                   {selectedDeliveryMode === 'zones' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Zone de livraison <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
-                          <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <input
-                              type="text"
-                              value={zoneSearchQuery}
-                              onChange={(e) => {
-                                setZoneSearchQuery(e.target.value);
-                                setShowZoneDropdown(true);
-                                if (selectedZone && e.target.value !== selectedZone.nom) {
-                                  setSelectedZone(null);
-                                  setPrixLivraison(0);
-                                }
-                              }}
-                              onFocus={() => setShowZoneDropdown(true)}
-                              className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.zone ? 'border-red-500' : 'border-gray-300'
-                              }`}
-                              placeholder="Recherchez votre zone..."
-                            />
-                          </div>
-
-                          {/* Dropdown des zones */}
+                          <Search size={16} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={zoneSearchQuery}
+                            onChange={(e) => {
+                              setZoneSearchQuery(e.target.value);
+                              setShowZoneDropdown(true);
+                              if (selectedZone && e.target.value !== selectedZone.nom) {
+                                setSelectedZone(null);
+                                setPrixLivraison(0);
+                              }
+                            }}
+                            onFocus={() => setShowZoneDropdown(true)}
+                            className={`w-full pl-9 pr-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 ${
+                              errors.zone ? 'border-red-400' : 'border-gray-200 focus:border-gray-900'
+                            }`}
+                            placeholder="Recherchez votre zone..."
+                          />
                           {showZoneDropdown && filteredZones.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
                               {filteredZones.map((zone) => (
                                 <button
                                   key={zone.id}
                                   type="button"
                                   onClick={() => handleZoneSelect(zone)}
                                   className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
-                                    selectedZone?.id === zone.id ? 'bg-blue-50' : ''
+                                    selectedZone?.id === zone.id ? 'bg-gray-50' : ''
                                   }`}
                                 >
                                   <div className="flex justify-between items-center">
                                     <div>
-                                      <p className="font-medium text-gray-800">{zone.nom}</p>
-                                      {zone.description && (
-                                        <p className="text-sm text-gray-500">{zone.description}</p>
-                                      )}
+                                      <p className="text-sm font-medium text-gray-900">{zone.nom}</p>
+                                      {zone.description && <p className="text-xs text-gray-400">{zone.description}</p>}
                                     </div>
                                     <div className="text-right">
-                                      <p className="font-semibold text-blue-600">
+                                      <p className="text-sm font-semibold text-gray-900">
                                         {livraisonGratuiteApplicable ? (
                                           <span className="text-green-600">Gratuit</span>
                                         ) : (
-                                          `${zone.tarif.toLocaleString()} FCFA`
+                                          `${zone.tarif.toLocaleString('fr-FR')} Fcfa`
                                         )}
                                       </p>
                                       {zone.temps_min && zone.temps_max && (
-                                        <p className="text-xs text-gray-500">{zone.temps_min}-{zone.temps_max} min</p>
+                                        <p className="text-xs text-gray-400">{zone.temps_min}-{zone.temps_max} min</p>
                                       )}
                                     </div>
                                   </div>
@@ -572,113 +459,69 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
                               ))}
                             </div>
                           )}
-
                           {showZoneDropdown && filteredZones.length === 0 && zoneSearchQuery && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center text-sm text-gray-400">
                               Aucune zone trouvée pour "{zoneSearchQuery}"
                             </div>
                           )}
                         </div>
-                        {errors.zone && (
-                          <p className="text-red-500 text-sm mt-1">{errors.zone}</p>
-                        )}
+                        {errors.zone && <p className="text-red-500 text-xs mt-1">{errors.zone}</p>}
                       </div>
 
-                      {/* Options de tarif pour la zone sélectionnée */}
                       {selectedZone && (
-                        <div className="space-y-3">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Options de livraison
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">Options de livraison</label>
+                          {/* Standard */}
+                          <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${
+                            selectedZoneType === 'STANDARD' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
+                          }`}>
+                            <div className="flex items-center gap-3">
+                              <input type="radio" name="zoneType" checked={selectedZoneType === 'STANDARD'} onChange={() => handleZoneTypeChange('STANDARD')} className="accent-gray-900" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">Standard</p>
+                                <p className="text-xs text-gray-400">Délai : {selectedZone.temps_min || 30}-{selectedZone.temps_max || 90} min</p>
+                              </div>
+                            </div>
+                            <p className="text-sm font-bold text-gray-900">
+                              {livraisonGratuiteApplicable ? <span className="text-green-600">Gratuit</span> : `${selectedZone.tarif.toLocaleString('fr-FR')} Fcfa`}
+                            </p>
                           </label>
-                          <div className="space-y-2">
-                            {/* Standard */}
-                            <label className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                              selectedZoneType === 'STANDARD' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'
+                          {selectedZone.tarif_express && (
+                            <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${
+                              selectedZoneType === 'EXPRESS' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
                             }`}>
-                              <div className="flex items-center">
-                                <input
-                                  type="radio"
-                                  name="zoneType"
-                                  checked={selectedZoneType === 'STANDARD'}
-                                  onChange={() => handleZoneTypeChange('STANDARD')}
-                                  className="mr-3"
-                                />
+                              <div className="flex items-center gap-3">
+                                <input type="radio" name="zoneType" checked={selectedZoneType === 'EXPRESS'} onChange={() => handleZoneTypeChange('EXPRESS')} className="accent-gray-900" />
                                 <div>
-                                  <p className="font-medium">Standard</p>
-                                  <p className="text-sm text-gray-500">
-                                    Délai: {selectedZone.temps_min || 30}-{selectedZone.temps_max || 90} min
-                                  </p>
+                                  <p className="text-sm font-medium text-gray-900">Express</p>
+                                  <p className="text-xs text-gray-400">Livraison prioritaire plus rapide</p>
                                 </div>
                               </div>
-                              <p className="font-bold text-lg">
-                                {livraisonGratuiteApplicable ? (
-                                  <span className="text-green-600">Gratuit</span>
-                                ) : (
-                                  `${selectedZone.tarif.toLocaleString()} FCFA`
-                                )}
-                              </p>
+                              <p className="text-sm font-bold text-gray-900">{selectedZone.tarif_express.toLocaleString('fr-FR')} Fcfa</p>
                             </label>
-
-                            {/* Express */}
-                            {selectedZone.tarif_express && (
-                              <label className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                                selectedZoneType === 'EXPRESS' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:bg-gray-50'
-                              }`}>
-                                <div className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="zoneType"
-                                    checked={selectedZoneType === 'EXPRESS'}
-                                    onChange={() => handleZoneTypeChange('EXPRESS')}
-                                    className="mr-3"
-                                  />
-                                  <div>
-                                    <p className="font-medium">Express</p>
-                                    <p className="text-sm text-gray-500">Livraison prioritaire plus rapide</p>
-                                  </div>
+                          )}
+                          {selectedZone.tarif_urgent && (
+                            <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${
+                              selectedZoneType === 'URGENT' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'
+                            }`}>
+                              <div className="flex items-center gap-3">
+                                <input type="radio" name="zoneType" checked={selectedZoneType === 'URGENT'} onChange={() => handleZoneTypeChange('URGENT')} className="accent-gray-900" />
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">Urgent</p>
+                                  <p className="text-xs text-gray-400">Livraison ultra-rapide garantie</p>
                                 </div>
-                                <p className="font-bold text-lg">
-                                  {selectedZone.tarif_express.toLocaleString()} FCFA
-                                </p>
-                              </label>
-                            )}
-
-                            {/* Urgent */}
-                            {selectedZone.tarif_urgent && (
-                              <label className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                                selectedZoneType === 'URGENT' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:bg-gray-50'
-                              }`}>
-                                <div className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="zoneType"
-                                    checked={selectedZoneType === 'URGENT'}
-                                    onChange={() => handleZoneTypeChange('URGENT')}
-                                    className="mr-3"
-                                  />
-                                  <div>
-                                    <p className="font-medium">Urgent</p>
-                                    <p className="text-sm text-gray-500">Livraison ultra-rapide garantie</p>
-                                  </div>
-                                </div>
-                                <p className="font-bold text-lg">
-                                  {selectedZone.tarif_urgent.toLocaleString()} FCFA
-                                </p>
-                              </label>
-                            )}
-                          </div>
+                              </div>
+                              <p className="text-sm font-bold text-gray-900">{selectedZone.tarif_urgent.toLocaleString('fr-FR')} Fcfa</p>
+                            </label>
+                          )}
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Message si aucun mode de livraison n'est disponible */}
                   {!hasAnyDeliveryMode && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800">
-                        La livraison à domicile n'est pas disponible pour cette boutique.
-                        Veuillez choisir la récupération en boutique.
-                      </p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                      <p className="text-sm text-gray-600">La livraison à domicile n'est pas disponible. Veuillez choisir la récupération en boutique.</p>
                     </div>
                   )}
                 </>
@@ -688,77 +531,68 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
           {/* Commentaire */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Commentaire (facultatif)
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Commentaire <span className="text-gray-400 font-normal">(facultatif)</span>
             </label>
             <textarea
               value={formData.commentaire}
               onChange={(e) => handleInputChange('commentaire', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass()}
               placeholder="Ajoutez un commentaire pour votre commande..."
               rows={2}
             />
           </div>
 
-          {/* Paiement */}
-          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mt-6">
-            <p className="text-green-800 text-lg font-bold text-center">
-              💰 Paiement à la livraison
-            </p>
+          {/* Paiement à la livraison */}
+          <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <span className="text-lg">💰</span>
+            <p className="text-sm font-semibold text-gray-900">Paiement à la livraison</p>
           </div>
 
           {/* Récapitulatif */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700">Sous-total produits:</span>
-              <span className="font-medium">{getTotalPrice() ? getTotalPrice().toLocaleString() : '0'} FCFA</span>
+          <div className="border border-gray-100 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-500">Sous-total produits</span>
+              <span className="font-medium text-gray-900">{getTotalPrice() ? getTotalPrice().toLocaleString('fr-FR') : '0'} Fcfa</span>
             </div>
-
             {formData.typeRecuperation === 'domicile' && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Frais de livraison:</span>
-                <span className="font-medium">
-                  {prixLivraison === 0 ? (
-                    <span className="text-green-600 font-semibold">Gratuit</span>
-                  ) : (
-                    `${prixLivraison ? prixLivraison.toLocaleString() : '0'} FCFA`
-                  )}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Frais de livraison</span>
+                <span className="font-medium text-gray-900">
+                  {prixLivraison === 0 ? <span className="text-green-600">Gratuit</span> : `${prixLivraison.toLocaleString('fr-FR')} Fcfa`}
                 </span>
               </div>
             )}
-
-            <div className="border-t pt-2">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-900">Total à payer:</span>
-                <span className="text-xl font-bold text-blue-600">
-                  {(getTotalPrice() + prixLivraison) ? (getTotalPrice() + prixLivraison).toLocaleString() : '0'} FCFA
-                </span>
-              </div>
+            <div className="border-t border-gray-100 pt-2 flex justify-between items-center">
+              <span className="text-sm font-bold text-gray-900">Total à payer</span>
+              <span className="text-base font-bold text-gray-900">
+                {(getTotalPrice() + prixLivraison).toLocaleString('fr-FR')} Fcfa
+              </span>
             </div>
           </div>
 
           {submitError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-800 text-sm">{submitError}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+              <p className="text-sm text-red-700">{submitError}</p>
             </div>
           )}
 
           {/* Boutons */}
-          <div className="flex space-x-3 pt-4 border-t">
+          <div className="flex gap-3 pt-2 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 text-sm rounded-full hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={loading || !isFormValid()}
-              className="flex-1 bg-gradient-to-r from-[#389EBF] to-[#3B82F6] text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-900 text-white text-sm font-medium py-2.5 px-4 rounded-full hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {loading ? 'Traitement...' : isCalculatingPrice ? 'Calcul en cours...' : 'Confirmer'}
+              {loading ? 'Traitement...' : isCalculatingPrice ? 'Calcul en cours...' : 'Confirmer la commande'}
             </button>
           </div>
         </form>

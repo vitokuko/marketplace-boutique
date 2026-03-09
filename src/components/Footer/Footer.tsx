@@ -1,147 +1,96 @@
-import React, { useState } from 'react';
-import { Phone, Mail, HelpCircle, Clock, Facebook, Instagram, Twitter } from 'lucide-react';
+import React from 'react';
+import { Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import FooterImage from '../../assets/Footer.png';
-import Logo from '../../assets/Logo';
 
 const Footer: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    //console.log('Newsletter subscription:', { name, email });
-    setName('');
-    setEmail('');
-  };
-
   return (
-    <footer
-      id="footer"
-      className="text-white relative"
-      style={{
-        backgroundImage: `url(${FooterImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
-      <div className="absolute inset-0 "></div>
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+    <footer id="footer" className="bg-white border-t border-gray-200">
+      <div className="max-w-screen-xl mx-auto px-4 lg:px-8 py-12">
 
-        <div className="text-center mb-12">
-          <h3 className="text-2xl font-bold mb-4 text-white">Newsletter</h3>
-          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-            Abonnez-vous à notre newsletter pour recevoir nos promos et nouveautés.
-          </p>
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
-              <input
-                type="text"
-                placeholder="Nom"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex-1 max-w-xs w-full sm:w-auto"
-                required
-              />
-              <input
-                type="email"
-                placeholder="Adresse e-mail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex-1 max-w-xs w-full sm:w-auto"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 whitespace-nowrap"
-              >
-                S'abonner
-              </button>
+        {/* Colonnes principales */}
+        <div className="flex flex-col md:flex-row justify-between gap-8 mb-10">
+
+          {/* Logo + description */}
+          <div className="max-w-[260px]">
+            <div className="mb-3 w-16">
+              {/* Logo en noir pour fond blanc */}
+              <svg width="64" height="40" viewBox="0 0 88 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.2393 49.7079V44.9149H18.2443C19.1456 44.9149 19.2492 44.9473 19.2492 45.2241C19.2492 45.3942 19.2863 45.5333 19.3327 45.5333C19.3791 45.5333 19.6883 45.3942 20.0223 45.2241C21.1943 44.6258 22.9646 44.8917 23.9464 45.8116C25.3533 47.132 25.3039 49.7079 23.8428 51.2215C22.9135 52.1832 20.8943 52.4368 19.9697 51.7101C19.7595 51.5447 19.5461 51.4086 19.4951 51.4086C19.4456 51.4086 19.4038 52.1044 19.4038 52.9547V54.5008H18.3216H17.2393V49.7079ZM21.8529 50.1083C22.4884 49.779 22.7218 49.1822 22.6677 48.0334C22.6584 47.8355 22.4466 47.4706 22.1992 47.2217C21.8374 46.8614 21.6117 46.7702 21.0737 46.7702C20.2388 46.7702 19.7687 47.0856 19.5786 47.7721C19.3683 48.5328 19.6095 49.3971 20.1707 49.9011C20.6979 50.3727 21.2159 50.4361 21.8529 50.1083ZM10.2044 51.9559C9.86427 51.8322 9.39424 51.5184 9.16078 51.2586C8.80981 50.8675 8.73559 50.6433 8.73869 49.9753C8.74487 48.5715 9.51175 48.0319 11.7242 47.8742C12.4911 47.82 13.1405 47.7025 13.1699 47.6144C13.3662 47.0192 12.0273 46.546 10.8615 46.7996C9.6911 47.0532 9.6509 47.0439 9.40043 46.4223C9.2721 46.1038 9.20562 45.7421 9.252 45.6184C9.38651 45.2705 10.8383 44.9149 12.1324 44.9149C13.694 44.9149 14.5413 45.32 15.036 46.3002C15.3545 46.931 15.3839 47.2047 15.3839 49.5084V52.027H14.3789C13.5889 52.027 13.374 51.9776 13.374 51.7951C13.374 51.506 13.2333 51.5045 12.6627 51.7828C11.9484 52.1337 10.8971 52.2079 10.2044 51.9559ZM12.7431 50.2351C13.0323 49.9923 13.2194 49.6893 13.2194 49.462C13.2194 49.1188 13.1621 49.091 12.4849 49.1049C11.3439 49.1281 10.9837 49.2749 10.9295 49.7372C10.8971 50.0186 10.9898 50.2165 11.2357 50.3882C11.7382 50.7407 12.1974 50.6943 12.7431 50.2351ZM30.9225 52.0224C30.4973 51.9621 29.8835 51.7998 29.5572 51.6637C28.9991 51.4287 28.9697 51.3839 29.0733 50.9092C29.2542 50.0619 29.4397 49.8207 29.8154 49.9413C31.6971 50.5474 32.917 50.5938 33.1211 50.0635C33.2556 49.711 32.8056 49.4419 31.8764 49.3182C30.6179 49.1497 29.6701 48.6812 29.3872 48.086C28.8862 47.0284 29.1893 45.9724 30.1695 45.3663C30.5885 45.1081 31.0462 44.9984 31.9166 44.9473C33.0886 44.8793 34.7831 45.1221 34.9424 45.3787C34.9888 45.4529 34.8697 45.8348 34.678 46.2275C34.3904 46.8197 34.2775 46.9248 34.0178 46.8398C33.8462 46.7826 33.2154 46.7022 32.6155 46.6604C31.7311 46.5986 31.4868 46.6326 31.3167 46.8383C31.006 47.2124 31.2301 47.3485 32.8304 47.7536C34.6656 48.2174 35.1743 48.6457 35.1743 49.7311C35.1743 51.3885 33.3607 52.3656 30.9225 52.0224ZM53.6505 51.891C52.7367 51.472 52.4491 51.0685 52.3687 50.0944C52.242 48.5684 52.9439 48.0442 55.3373 47.8726C56.0964 47.82 56.7412 47.7025 56.7705 47.6144C56.8757 47.299 56.4149 46.9047 55.7718 46.7609C55.1657 46.6249 54.6987 46.6775 53.6257 47.0068C53.3397 47.0934 53.2438 47.0021 52.9655 46.3713C52.7862 45.9647 52.6934 45.5782 52.7599 45.5117C53.0691 45.2025 54.9307 44.8824 56.0423 44.9489C57.457 45.0324 58.0739 45.3292 58.6383 46.1951C59.0573 46.8398 59.0619 46.8785 59.0619 49.3986V51.9497L58.0801 51.9961C57.3194 52.0317 57.0566 51.9868 56.9159 51.7951C56.752 51.5694 56.6716 51.5756 56.0439 51.8616C55.1842 52.2497 54.4529 52.259 53.6505 51.891ZM56.3438 50.2351C56.6469 49.9815 56.82 49.6909 56.82 49.4404C56.82 49.0523 56.8061 49.0477 55.8862 49.1312C54.8827 49.2224 54.5008 49.4265 54.5008 49.8733C54.5008 50.2165 55.0652 50.6355 55.529 50.6355C55.7161 50.6355 56.0825 50.4562 56.3438 50.2351ZM77.3556 51.9745C74.6437 51.2122 73.6449 47.7876 75.5884 45.9152C76.3491 45.1824 77.1299 44.9133 78.4843 44.918C80.0799 44.9242 81.2364 45.6586 81.8131 47.0362C82.1347 47.803 82.0868 48.8884 81.7234 49.0832C81.5564 49.1729 80.4278 49.244 79.1723 49.244C77.8829 49.244 76.9196 49.3059 76.9196 49.3878C76.9196 49.6738 77.8891 50.215 78.5183 50.2799C78.9698 50.3263 79.3439 50.2521 79.7738 50.0279L80.386 49.7079L80.9689 50.2784C81.4915 50.7886 81.5302 50.8752 81.3245 51.1009C80.5948 51.908 78.6451 52.3363 77.3556 51.9745ZM79.8171 47.5866C79.8526 47.483 79.7042 47.2217 79.4893 47.0068C78.9002 46.4177 77.8334 46.4517 77.2072 47.0779C76.9521 47.3315 76.7898 47.6129 76.8454 47.7025C76.9908 47.9376 79.7367 47.8309 79.8171 47.5866ZM85.5779 52.0734C83.9808 51.4952 83.6839 50.988 83.5958 48.6828L83.5293 46.9418L83.0469 46.8939C82.58 46.8491 82.5614 46.8197 82.5166 46.0466L82.4702 45.2442L82.9804 45.1963L83.4907 45.1468L83.537 44.1805L83.5834 43.2141H84.641C85.816 43.2141 85.8794 43.2683 85.7836 44.1959C85.6985 44.9968 85.9258 45.2241 86.8102 45.2241C87.526 45.2241 87.5415 45.2349 87.5152 45.6879C87.4487 46.8011 87.4905 46.7501 86.6216 46.8012L85.8098 46.8475L85.8408 48.2947C85.8763 50.0372 86.0588 50.348 87.0112 50.2877C87.6126 50.249 87.6281 50.2614 87.8306 50.9401C88.0641 51.7147 88.0301 51.7673 87.124 52.0255C86.5442 52.1909 85.9536 52.2095 85.5779 52.0734ZM0.0757609 51.9961C0.0742148 51.9698 0.0572074 49.915 0.0371078 47.4273L0 42.9049H2.50781C5.2831 42.9049 6.15512 43.0827 6.93282 43.8094C7.64403 44.4742 7.86513 45.0417 7.87595 46.2399C7.88832 47.6206 7.46777 48.3411 6.26953 48.9936C5.57377 49.3724 5.23672 49.445 3.85758 49.5146L2.25425 49.5965L2.20941 50.7731L2.16457 51.9497L1.12094 51.9961C0.547328 52.0209 0.0757609 52.0209 0.0757609 51.9961ZM5.11767 47.1722C5.45318 46.8367 5.64335 46.4966 5.64335 46.2337C5.64335 45.2179 4.92595 44.7603 3.3319 44.7603H2.24188V46.1255C2.24188 46.8769 2.28826 47.5387 2.34547 47.5943C2.40113 47.6515 2.9299 47.6979 3.52052 47.6979C4.53323 47.6979 4.62136 47.6685 5.11767 47.1722ZM40.4311 51.9961C40.4296 51.9698 40.4126 49.912 40.3925 47.4211L40.3538 42.8925L41.4222 42.9374L42.4906 42.9822L43.7414 45.1514C44.4294 46.345 45.136 47.5186 45.3138 47.7597L45.6338 48.1988L46.5337 46.5955C47.0284 45.7142 47.7041 44.5222 48.0365 43.9486L48.6395 42.9049H49.7171H50.7948L50.7546 47.4273L50.7128 51.9497L49.6692 51.9961L48.6256 52.041V49.561C48.6256 48.1958 48.5715 47.0794 48.505 47.0794C48.4385 47.0794 47.8633 48.0009 47.2263 49.1281C46.1054 51.1148 46.0544 51.1767 45.5565 51.1767C45.0649 51.1767 44.9999 51.104 44.1124 49.5532C42.5338 46.795 42.6854 46.795 42.5957 49.5532L42.5184 51.9497L41.4748 51.9961C40.9011 52.0209 40.4311 52.0209 40.4311 51.9961ZM60.8399 48.5715C60.8399 44.6474 60.7425 44.9149 62.1665 44.9149C62.952 44.9149 63.0045 44.9381 63.0045 45.2921V45.6694L63.6616 45.2937C64.0234 45.088 64.5475 44.918 64.8289 44.9164L65.3392 44.9149L65.2928 45.8812C65.2479 46.8305 65.2387 46.8491 64.7826 46.8924C63.3261 47.0331 63.0215 47.5711 62.9674 50.0944L62.9272 51.9497L61.8836 51.9961L60.8399 52.041V48.5715ZM66.5591 47.9747C66.5591 45.739 66.5142 43.545 66.4601 43.0982L66.3627 42.2865H67.5439H68.7252V44.8376C68.7252 46.2415 68.7777 47.3887 68.8411 47.3887C68.9045 47.3887 69.5091 46.8321 70.1847 46.1518L71.4123 44.9149H72.7327H74.0531L72.6353 46.345L71.2175 47.7752L72.6771 49.745C73.4795 50.8273 74.1366 51.7843 74.1366 51.8709C74.1366 51.9637 73.6357 52.027 72.9105 52.027H71.6845L70.8619 50.9587C70.4089 50.3712 69.9667 49.7682 69.877 49.6197C69.7224 49.3646 69.6946 49.3646 69.2972 49.6244C69.0684 49.7743 68.8721 50.0465 68.8643 50.2274C68.855 50.4098 68.838 50.8721 68.8257 51.254L68.8025 51.9497L67.6815 51.9946L66.5606 52.041L66.5591 47.9747ZM26.0213 46.8414C25.9749 46.7965 26.0259 46.2909 26.1341 45.7204C26.3026 44.836 26.298 44.6459 26.1078 44.4309C25.7043 43.9779 25.678 43.1848 26.0491 42.7117C26.3135 42.3761 26.5129 42.2865 26.9907 42.2865C27.9091 42.2865 28.2616 42.7163 28.1765 43.7306C28.1209 44.4016 27.5334 46.2507 27.2102 46.7733C27.1113 46.931 26.165 46.9851 26.0213 46.8414ZM35.8283 38.868C34.2621 38.0918 33.656 36.0741 34.5466 34.6069C35.0661 33.7534 35.8701 33.2664 36.8843 33.1937C38.0609 33.1087 38.4474 33.2169 39.1386 33.823C40.5177 35.0336 40.6182 36.8596 39.3798 38.1645C38.4026 39.1942 37.0358 39.4648 35.8283 38.868ZM54.439 38.8433C53.1449 38.1042 52.443 36.6261 52.7877 35.366C52.9887 34.6285 53.7061 33.7271 54.3617 33.3885C55.008 33.0546 56.5525 33.101 57.29 33.4767C59.0325 34.3657 59.3479 37.0018 57.876 38.3748C56.9654 39.2251 55.4641 39.4308 54.439 38.8433ZM33.6792 31.7017C33.4086 31.5842 33.0824 31.326 32.9541 31.1281C32.7624 30.8343 30.7014 23.0991 29.4567 18.0123C28.444 13.8641 25.7089 3.54681 25.5837 3.39529C25.4847 3.27623 24.6375 3.18501 23.1779 3.13554C21.0226 3.06287 20.9067 3.04123 20.5341 2.66861C20.2743 2.41041 20.1166 2.04707 20.0656 1.59251C20.0006 1.01735 20.0517 0.834905 20.381 0.453013L20.7722 0L23.7593 0.0293767C27.2504 0.0633914 27.6741 0.122144 27.9926 0.609173C28.124 0.808623 29.0578 4.16217 30.069 8.06149C31.0802 11.9608 32.1594 16.0921 32.467 17.2393C32.7763 18.3865 33.2246 20.0981 33.4658 21.0427C34.157 23.7624 33.9266 23.4825 35.3846 23.3758C37.6234 23.2135 54.5209 21.8823 56.4319 21.7184C57.488 21.6272 58.3646 21.4787 58.4667 21.3705C58.6429 21.185 59.2011 19.1797 61.2327 11.4413C61.7908 9.31539 62.3227 7.38274 62.4154 7.14618C62.8252 6.09327 64.2043 5.74694 64.965 6.50763C65.3283 6.86942 65.3562 6.98693 65.2758 7.78318C65.2278 8.26403 64.529 11.163 63.7235 14.2243C61.1043 24.1721 61.1631 23.9943 60.3885 24.3576C60.1689 24.4612 57.5204 24.7411 54.5008 24.9792C51.4813 25.2173 47.6902 25.5188 46.0745 25.6502C44.4588 25.7816 41.2954 26.0321 39.0458 26.2083C36.7962 26.3846 34.93 26.5547 34.8991 26.5856C34.8682 26.6165 34.9702 27.1175 35.1264 27.6988L35.4093 28.7579L47.752 28.8352L60.0947 28.9125L60.3916 29.2805C61.0703 30.1185 60.908 30.9132 59.9246 31.5765L59.4021 31.9274L46.7857 31.9213C36.405 31.9166 34.0827 31.878 33.6792 31.7017ZM34.9888 19.6311L34.9424 17.2393H46.2677H57.5931L57.5776 18.2829C57.5544 19.8986 57.4663 20.081 56.6592 20.2063C56.2789 20.265 54.5086 20.4243 52.7228 20.5588C47.9839 20.919 36.4406 21.8591 35.6845 21.9488L35.0352 22.0245L34.9888 19.6311ZM36.2566 13.5286C36.2566 10.274 36.3123 10.039 36.9292 10.7193C37.1472 10.9605 37.1843 11.4135 37.1843 13.8115V16.6208H36.7204H36.2566V13.5286ZM55.4332 13.8765C55.4378 11.4228 55.4703 11.095 55.7285 10.7842C56.3067 10.0915 56.3562 10.3049 56.3562 13.5286V16.6208H55.8924H55.4285L55.4332 13.8765ZM33.9529 10.0653C33.4968 9.60452 33.1752 9.15305 33.2324 9.06028C33.3066 8.93814 37.0389 8.89021 46.2384 8.89021C58.5362 8.89021 59.1392 8.90258 59.1392 9.16697C59.1392 9.32003 58.8269 9.74985 58.4466 10.124L57.7539 10.8043L57.3287 10.4271C57.0952 10.2199 56.8123 9.92766 56.6994 9.77923C56.3732 9.34941 56.0068 9.45764 55.2816 10.1967L54.6075 10.8847L53.8035 10.1967C53.3613 9.81788 52.9393 9.50866 52.8666 9.50866C52.7924 9.50866 52.4012 9.83643 51.993 10.2369L51.254 10.9651L50.5149 10.2369C50.1068 9.83643 49.6862 9.50866 49.5795 9.50866C49.4728 9.50866 49.0523 9.81943 48.6472 10.1998L47.9082 10.8909L47.2294 10.1998C46.8568 9.81943 46.4687 9.50866 46.3682 9.50866C46.2677 9.50866 45.841 9.81788 45.4205 10.1967L44.6551 10.8847L43.9795 10.1967C43.6084 9.81788 43.2389 9.50866 43.16 9.50866C43.0796 9.50866 42.673 9.82716 42.2555 10.2183L41.4979 10.928L40.7388 10.2183C40.3213 9.82716 39.8977 9.50866 39.7972 9.50866C39.6983 9.50866 39.3133 9.78696 38.9438 10.1271C38.5758 10.4673 38.2186 10.7456 38.1521 10.7456C38.0841 10.7456 37.6605 10.4224 37.209 10.0282L36.388 9.30921L35.5825 10.1055L34.7769 10.9002L33.9529 10.0653ZM34.1214 8.10787C34.1508 8.01665 35.3923 6.97456 36.8781 5.78869C39.4215 3.76326 39.621 3.63494 40.2564 3.63494C40.7744 3.63339 40.898 3.67823 40.7821 3.82665C40.7001 3.93334 40.0322 4.85483 39.2978 5.87527C38.5619 6.89571 37.8661 7.85276 37.7486 8.00119C37.5692 8.23001 37.2708 8.27176 35.802 8.27176C34.6455 8.27176 34.0843 8.21764 34.1214 8.10787ZM38.6716 8.14652C38.6283 8.07695 38.8541 7.6765 39.171 7.2575C39.488 6.83696 40.1946 5.85053 40.7388 5.06355L41.7299 3.63339H46.2987H50.8675L51.4086 4.42964C51.7055 4.8672 52.4182 5.85053 52.9887 6.61586C53.5608 7.37965 53.9922 8.06458 53.9458 8.13879C53.8422 8.30732 38.7752 8.31505 38.6716 8.14652ZM53.2902 5.91392L51.7147 3.7107L52.2961 3.60865C52.6517 3.54526 52.9779 3.57464 53.1341 3.68596C53.4696 3.91942 58.0647 7.63167 58.36 7.90688C58.5532 8.08468 58.3043 8.11715 56.7257 8.11715H54.8642L53.2902 5.91392ZM39.9425 1.93265C39.8807 0.847275 40.0477 0.752962 40.7635 1.46882L41.2274 1.93265H46.3342H51.4411L51.7457 1.54458C51.9142 1.33276 52.1847 1.08538 52.3486 0.998794C52.6269 0.84882 52.6455 0.901389 52.6455 1.84916V2.86033H46.3203H39.9951L39.9425 1.93265Z" fill="#1a1a1a"/>
+              </svg>
             </div>
-          </form>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-
-          <div className="flex flex-col items-center md:items-start">
-            <div className="w-24 h-auto mb-4">
-              <Logo />
-            </div>
-            <p className="text-gray-300 leading-relaxed text-center md:text-left">
+            <p className="text-xs text-gray-400 leading-relaxed">
               Profitez d'une expérience d'achat en ligne simplifiée et entièrement sécurisée, de la commande à la livraison.
             </p>
           </div>
 
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-center md:text-left text-white">Navigation rapide</h4>
-            <div className="w-[1.4cm] h-[0.1cm] bg-blue-600 mb-4 rounded-full"></div>
-            <ul className="space-y-2 text-center md:text-left">
-              <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">Accueil</Link></li>
-              <li><Link to="/products" className="text-gray-300 hover:text-white transition-colors">Produits</Link></li>
-              <li><Link to="/fonctionnalites" className="text-gray-300 hover:text-white transition-colors">Fonctionnalités</Link></li>
-              <li><Link to="/politique-confidentialite" className="text-gray-300 hover:text-white transition-colors">Politique de confidentialité</Link></li>
-              <li><Link to="/conditions-generales" className="text-gray-300 hover:text-white transition-colors">Conditions générales de vente (CGV)</Link></li>
-            </ul>
-          </div>
+          {/* 3 colonnes droite */}
+          <div className="flex gap-16">
 
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-center md:text-left text-white">Support et Contact</h4>
-            <div className="w-[1.4cm] h-[0.1cm] bg-blue-600 mb-4 rounded-full"></div>
-            <div className="space-y-3 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <Phone size={16} className="text-gray-300" />
-                <span className="text-gray-300">Téléphone (+221 00 000 00 00)</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <Phone size={16} className="text-gray-300" />
-                <span className="text-gray-300">WhatsApp (+221 00 000 00 00)</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <Mail size={16} className="text-gray-300" />
-                <span className="text-gray-300">Email support</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <HelpCircle size={16} className="text-gray-300" />
-                <span className="text-gray-300">FAQ</span>
-              </div>
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <Clock size={16} className="text-gray-300" />
-                <span className="text-gray-300">Horaires d'assistance 08H - 17H</span>
-              </div>
+            {/* Navigation */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Navigation</h4>
+              <ul className="space-y-3">
+                <li><Link to="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Accueil</Link></li>
+                <li><Link to="/products" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Boutique</Link></li>
+                <li><Link to="#footer" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Contact</Link></li>
+              </ul>
             </div>
-          </div>
 
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-center md:text-left text-white">Suivez - nous</h4>
-            <div className="w-[1.4cm] h-[0.1cm] bg-blue-600 mb-4 rounded-full"></div>
-            <div className="flex flex-col justify-center md:justify-start space-y-3">
-              <a href="#" className="flex items-center space-x-2 text-gray-300 hover:text-blue-500 transition-colors transform hover:scale-105">
-                <Facebook size={20} />
-                <span>Facebook</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 text-gray-300 hover:text-pink-500 transition-colors transform hover:scale-105">
-                <Instagram size={20} />
-                <span>Instagram</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-colors transform hover:scale-105">
-                <Twitter size={20} />
-                <span>X</span>
-              </a>
-              <a href="#" className="flex items-center space-x-2 text-gray-300 hover:text-black transition-colors transform hover:scale-105">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                </svg>
-                <span>TikTok</span>
-              </a>
+            {/* Support et Contact */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Support et Contact</h4>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2 text-sm text-gray-500">
+                  <Phone size={15} strokeWidth={1.5} />
+                  <span>+221 77 000 00 00</span>
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-500">
+                  {/* WhatsApp icon */}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>+221 77 000 00 00</span>
+                </li>
+                <li className="flex items-center gap-2 text-sm text-gray-500">
+                  <Mail size={15} strokeWidth={1.5} />
+                  <span>Infos@papsmarket.com</span>
+                </li>
+              </ul>
             </div>
+
+            {/* Suivez nous */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Suivez nous</h4>
+              <ul className="space-y-3">
+                <li>
+                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Discord</a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Instagram</a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Twitter</a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Facebook</a>
+                </li>
+              </ul>
+            </div>
+
           </div>
         </div>
 
-        <div className="text-center pt-8 border-t border-white/20">
-          <p className="text-gray-400 text-sm">
-            © 2025 Pap's Market - Tous droits réservés.
-          </p>
+        {/* Barre du bas */}
+        <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-gray-200 gap-4">
+          <p className="text-sm text-gray-500">©2025 Pap's Market – Tous droits réservés.</p>
+          <div className="flex items-center gap-6">
+            <Link to="/politique-confidentialite" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+              Politique de confidentialité
+            </Link>
+            <Link to="/conditions-generales" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+              Condition général de vente (CGV)
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

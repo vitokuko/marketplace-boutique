@@ -28,6 +28,11 @@ interface ProduitsProps {
   priceRange?: number[];
   searchTerm?: string;
   boutiqueId?: number | null;
+  sectionTitle?: string;
+  showNewBadge?: boolean;
+  columns?: 3 | 4;
+  limitHome?: number;
+  showViewAll?: boolean;
 }
 
 const ProduitsSection: React.FC<ProduitsProps> = ({
@@ -36,7 +41,12 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
   sortBy = 'popularity',
   priceRange = [0, 200000],
   searchTerm = '',
-  boutiqueId = null
+  boutiqueId = null,
+  sectionTitle,
+  showNewBadge = false,
+  columns = 3,
+  limitHome,
+  showViewAll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -118,17 +128,15 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
 
   if (loading) {
     return (
-      <section className="py-8 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="animate-pulse">Chargement des produits...</div>
-        </div>
+      <section className="py-8">
+        <div className="text-center animate-pulse text-gray-400">Chargement des produits...</div>
       </section>
     );
   }
-  
-  const productsPerPage = showAll ? 9 : 3;
+
+  const productsPerPage = showAll && !limitHome ? 9 : limitHome ?? 4;
   const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
-  
+
   const handleAddToCart = (product: Product) => {
     addToCart({
       id: product.id,
@@ -137,7 +145,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
       price: product.currentPrice
     });
   };
-  
+
   const handleShare = (product: Product, event: React.MouseEvent) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setSharePopup({
@@ -149,7 +157,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
       }
     });
   };
-  
+
   const toggleFavorite = (productId: number) => {
     setFavorites(prev => {
       const newFavorites = new Set(prev);
@@ -172,153 +180,210 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
     setSelectedProduct(null);
   };
 
+  const gridCols = columns === 4
+    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+
+  const displayedProducts = filteredAndSortedProducts.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
+
   const ProductCard = ({ product }: { product: Product }) => (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl hover:bg-gray-100 transition-all duration-300 cursor-pointer">
-      <div className="relative overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-56 object-contain bg-gray-50 p-2 group-hover:scale-110 transition-transform duration-300"
-        />
-        {product.stock <= 5 && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
-            Stock faible
+    <div className="group bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-300">
+      {/* Zone image + bouton panier intégré */}
+      <div className="relative bg-gray-100 rounded-xl mx-1 mt-1 overflow-hidden">
+        {/* Badge NOUVEAU */}
+        {showNewBadge && (
+          <span className="absolute top-3 left-3 z-10 bg-white text-gray-900 text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+            NOUVEAU
           </span>
         )}
-        <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+
+        {/* Actions — visibles au hover */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={() => openModal(product)}
-            className="bg-white p-2 rounded-full shadow-md hover:bg-gray-100 cursor-pointer"
+            className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:border-gray-400 transition-colors cursor-pointer shadow-sm"
           >
-            <Eye size={16} />
+            <Eye size={14} className="text-gray-500" strokeWidth={1.5} />
           </button>
           <button
             onClick={() => toggleFavorite(product.id)}
-            className={`bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors cursor-pointer ${
-              favorites.has(product.id) ? 'text-red-500' : 'text-gray-600'
+            className={`w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:border-gray-400 transition-colors cursor-pointer shadow-sm ${
+              favorites.has(product.id) ? 'text-red-500' : 'text-gray-500'
             }`}
           >
-            <Heart size={16} fill={favorites.has(product.id) ? 'currentColor' : 'none'} />
+            <Heart size={14} fill={favorites.has(product.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
           </button>
           <button
             onClick={(e) => handleShare(product, e)}
-            className="bg-white p-2 rounded-full shadow-md hover:bg-gray-100 cursor-pointer"
+            className="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:border-gray-400 transition-colors cursor-pointer shadow-sm"
           >
-            <Share2 size={16} />
+            <Share2 size={14} className="text-gray-500" strokeWidth={1.5} />
           </button>
         </div>
-      </div>
 
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-800 mb-2">{product.name}</h3>
+        {/* Image produit */}
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-52 object-contain p-6"
+        />
 
-        <div className="flex items-center mb-2">
-          <div className="flex text-yellow-400">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={14} fill={i < Math.floor(product.rating) ? 'currentColor' : 'none'} />
-            ))}
-          </div>
-          <span className="text-sm text-gray-600 ml-2">
-            {product.rating}
-          </span>
-        </div>
-
-        <div className="flex items-center mb-3">
-          <span className="text-lg font-bold text-gray-800">{product.currentPrice ? product.currentPrice.toLocaleString() : '0'} XOF</span>
-          <span className="text-sm text-gray-500 ml-2">Stock: {product.stock}</span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-4">
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{product.category}</span>
-          <span className="text-xs text-gray-500 italic">| {product.boutique}</span>
-        </div>
-
+        {/* Bouton panier — dans la zone image, pleine largeur, visible au hover */}
         <button
           onClick={() => handleAddToCart(product)}
           disabled={product.stock === 0}
-          className="w-full bg-gradient-to-r from-[#389EBF] to-[#3B82F6] text-white py-2 px-4 rounded-lg font-medium flex items-center justify-center space-x-2 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="absolute bottom-0 left-0 right-0 bg-gray-900 text-white text-sm font-medium py-2.5 flex items-center justify-center gap-2 hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0"
         >
-          <ShoppingCart size={18} />
+          <ShoppingCart size={15} strokeWidth={1.5} />
           <span>{product.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}</span>
         </button>
+      </div>
+
+      {/* Infos produit */}
+      <div className="px-2 pt-3 pb-3">
+        <h3 className="text-sm font-bold text-gray-900 mb-1.5 line-clamp-2 leading-snug">
+          {product.name}
+        </h3>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex text-amber-400">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={13}
+                fill={i < Math.floor(product.rating) ? 'currentColor' : 'none'}
+                strokeWidth={1.5}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">{product.rating}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-gray-900">
+            {product.currentPrice ? product.currentPrice.toLocaleString('fr-FR') : '0'} XOF
+          </span>
+          <span className="text-gray-300 text-sm">/</span>
+          <span className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+            {product.category}
+          </span>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <section className="py-4 sm:py-6 lg:py-8 px-3 sm:px-4">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">
-          {showAll ? 'TOUS NOS PRODUITS' : 'NOUVEAUX PRODUITS'}
-        </h2>
-
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6`}>
-          {filteredAndSortedProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-        
-        {filteredAndSortedProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">Aucun produit trouvé</p>
-            <p className="text-gray-400 text-sm mt-2">Aucun produit disponible pour le moment</p>
-          </div>
-        )}
-        
-        {showAll && totalPages > 1 && (
-          <div className="flex justify-center items-center mt-8 space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <div className="flex space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+    <section>
+      {/* En-tête section */}
+      {sectionTitle && (
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">{sectionTitle}</h2>
+          {/* Dots de navigation — visibles seulement si plusieurs pages */}
+          {totalPages > 1 && !showAll && (
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalPages }).map((_, i) => (
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                    currentPage === page
-                      ? 'bg-[#389EBF] text-white'
-                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`rounded-full transition-all duration-300 cursor-pointer ${
+                    currentPage === i + 1
+                      ? 'w-4 h-4 border-2 border-gray-900 bg-white'
+                      : 'w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400'
                   }`}
-                >
-                  {page}
-                </button>
+                />
               ))}
             </div>
+          )}
+        </div>
+      )}
 
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="p-2 bg-gray-200 rounded-full hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        )}
-        {selectedProduct && (
-          <ProductModal
-            product={selectedProduct}
-            isOpen={isModalOpen}
-            onClose={closeModal}
-          />
-        )}
-        
-        <SharePopup
-          isOpen={sharePopup.isOpen}
-          onClose={() => setSharePopup({ ...sharePopup, isOpen: false })}
-          product={sharePopup.product!}
-          position={sharePopup.position}
-        />
+      <div className={`grid ${gridCols} gap-4`}>
+        {displayedProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
+
+      {filteredAndSortedProducts.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Aucun produit disponible pour le moment</p>
+        </div>
+      )}
+
+      {/* Bouton Voir tout (home) */}
+      {showViewAll && filteredAndSortedProducts.length > productsPerPage && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => window.location.href = '/products'}
+            className="px-8 py-3 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors cursor-pointer"
+          >
+            Voir tout
+          </button>
+        </div>
+      )}
+
+      {/* Pagination (page /products) */}
+      {showAll && !limitHome && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-10">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            ← Précédent
+          </button>
+
+          <div className="flex items-center gap-1">
+            {(() => {
+              const pages: (number | string)[] = [];
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+              } else {
+                pages.push(1, 2, 3, '...', totalPages - 2, totalPages - 1, totalPages);
+              }
+              return pages.map((p, i) =>
+                p === '...' ? (
+                  <span key={i} className="px-1 text-gray-400 text-sm">...</span>
+                ) : (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(p as number)}
+                    className={`w-8 h-8 text-sm rounded transition-colors cursor-pointer ${
+                      currentPage === p
+                        ? 'bg-gray-900 text-white font-semibold'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              );
+            })()}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            Suivant →
+          </button>
+        </div>
+      )}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
+      )}
+
+      <SharePopup
+        isOpen={sharePopup.isOpen}
+        onClose={() => setSharePopup({ ...sharePopup, isOpen: false })}
+        product={sharePopup.product!}
+        position={sharePopup.position}
+      />
     </section>
   );
 };
