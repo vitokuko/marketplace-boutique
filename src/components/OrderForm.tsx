@@ -3,7 +3,7 @@ import { X, MapPin, Package, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useShop } from '../context/ShopContext';
 import { createOrder, convertCartToOrderItems } from '../services/orderService';
-import type { OrderData } from '../services/orderService';
+import type { OrderData, Order } from '../services/orderService';
 import { papsDeliveryService } from '../services/papsDeliveryService';
 import type { PapsOption, DeliveryConfigPublic, ZonePublicInfo } from '../services/papsDeliveryService';
 import type { AdresseLivraison } from '../models/livraison-models';
@@ -13,7 +13,7 @@ import { formatPhoneNumber, isValidPhoneNumber } from '../utils/phoneFormatter';
 interface OrderFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (orderId: number) => void;
+  onSuccess: (order: Order, typeRecuperation: 'boutique' | 'domicile') => void;
 }
 
 const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -127,7 +127,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
       };
       const order = await createOrder(orderData);
       clearCart();
-      onSuccess(order.id);
+      onSuccess(order, formData.typeRecuperation);
       onClose();
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Une erreur est survenue');

@@ -128,6 +128,32 @@ export const getAddressSuggestions = async (query: string, limit: number = 10): 
   }
 };
 
+export interface TrackingLigne {
+  produitNom: string;
+  quantite: number;
+  prixUnitaire: number;
+  totalLigne: number;
+}
+
+export interface TrackingOrder {
+  id: number;
+  statut: string;
+  dateCreation: string;
+  total: number;
+  fraisLivraison?: number;
+  typeRecuperation?: string;
+  adresseLivraison?: string;
+  client: { nom: string; telephone: string };
+  lignes: TrackingLigne[];
+}
+
+export const trackOrder = async (orderId: number, telephone: string): Promise<TrackingOrder> => {
+  const response = await apiCall<TrackingOrder>(
+    `/public/orders/track/${orderId}?telephone=${encodeURIComponent(telephone)}`
+  );
+  return response;
+};
+
 export const convertCartToOrderItems = (cartItems: CartItem[]) => {
   return cartItems.map(item => ({
     produitId: item.id,

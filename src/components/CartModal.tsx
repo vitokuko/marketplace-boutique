@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import OrderForm from './OrderForm';
+import OrderTracking from './OrderTracking';
+import type { Order } from '../services/orderService';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -11,16 +13,46 @@ interface CartModalProps {
 const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { items, updateQuantity, removeFromCart, clearCart, getTotalPrice } = useCart();
   const [orderFormOpen, setOrderFormOpen] = useState(false);
+  const [confirmedOrder, setConfirmedOrder] = useState<{
+    order: Order;
+    items: { name: string; quantity: number; price: number }[];
+    typeRecuperation: 'boutique' | 'domicile';
+  } | null>(null);
 
   if (!isOpen) return null;
+
+  if (confirmedOrder) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+        <div className="flex justify-end px-4 pt-4">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+          >
+            <X size={20} strokeWidth={1.5} />
+          </button>
+        </div>
+        <OrderTracking
+          order={confirmedOrder.order}
+          items={confirmedOrder.items}
+          typeRecuperation={confirmedOrder.typeRecuperation}
+        />
+      </div>
+    );
+  }
 
   const handleOrder = () => {
     setOrderFormOpen(true);
   };
 
-  const handleOrderSuccess = (orderId: number) => {
-    alert(`Commande #${orderId} créée avec succès ! Merci pour votre achat.`);
-    onClose();
+  const handleOrderSuccess = (order: Order, typeRecuperation: 'boutique' | 'domicile') => {
+    const snapshot = items.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+    setConfirmedOrder({ order, items: snapshot, typeRecuperation });
+    setOrderFormOpen(false);
   };
 
   return (
