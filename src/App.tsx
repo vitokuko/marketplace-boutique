@@ -1,6 +1,7 @@
 import './App.css'
 import Home from './pages/Home'
 import Products from './pages/Products'
+import SuiviCommande from './pages/SuiviCommande'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { CategoryProvider } from './context/CategoryContext'
@@ -19,9 +20,13 @@ function AppLayout() {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
 
+              {/* Suivi de commande */}
+              <Route path="/suivi" element={<SuiviCommande />} />
+
               {/* Routes boutique spécifique */}
               <Route path="/:shopSlug" element={<Home />} />
               <Route path="/:shopSlug/products" element={<Products />} />
+              <Route path="/:shopSlug/suivi" element={<SuiviCommande />} />
             </Routes>
           </div>
         </CartProvider>
