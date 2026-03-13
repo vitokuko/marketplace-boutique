@@ -8,30 +8,36 @@ import { CategoryProvider } from './context/CategoryContext'
 import { ShopProvider } from './context/ShopContext'
 import ErrorBoundary from './components/ErrorBoundary'
 
-// Layout component qui wrap les providers
-function AppLayout() {
+// Layout avec contexte boutique (pour les pages qui en ont besoin)
+function ShopLayout() {
   return (
     <ShopProvider>
       <CategoryProvider>
         <CartProvider>
           <div className="min-h-screen bg-gray-50">
             <Routes>
-              {/* Routes marketplace globales (fallback) */}
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
-
-              {/* Suivi de commande */}
-              <Route path="/suivi" element={<SuiviCommande />} />
-
-              {/* Routes boutique spécifique */}
               <Route path="/:shopSlug" element={<Home />} />
               <Route path="/:shopSlug/products" element={<Products />} />
-              <Route path="/:shopSlug/suivi" element={<SuiviCommande />} />
             </Routes>
           </div>
         </CartProvider>
       </CategoryProvider>
     </ShopProvider>
+  )
+}
+
+function AppLayout() {
+  return (
+    <Routes>
+      {/* Suivi de commande — sans contexte boutique */}
+      <Route path="/suivi" element={<SuiviCommande />} />
+      <Route path="/:shopSlug/suivi" element={<SuiviCommande />} />
+
+      {/* Toutes les autres routes avec contexte boutique */}
+      <Route path="/*" element={<ShopLayout />} />
+    </Routes>
   )
 }
 
