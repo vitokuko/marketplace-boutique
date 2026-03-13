@@ -15,10 +15,8 @@ interface OrderTrackingProps {
 }
 
 const STATUT_LABELS: Record<string, { label: string; color: string }> = {
-  EN_ATTENTE: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
-  CONFIRMEE: { label: 'Confirmée', color: 'bg-blue-100 text-blue-800' },
-  EN_PREPARATION: { label: 'En préparation', color: 'bg-purple-100 text-purple-800' },
-  EN_LIVRAISON: { label: 'En livraison', color: 'bg-orange-100 text-orange-800' },
+  A_PREPARER: { label: 'En attente de préparation', color: 'bg-yellow-100 text-yellow-800' },
+  EN_COURS: { label: 'En cours de livraison', color: 'bg-blue-100 text-blue-800' },
   LIVREE: { label: 'Livrée', color: 'bg-green-100 text-green-800' },
   ANNULEE: { label: 'Annulée', color: 'bg-red-100 text-red-800' },
 };
@@ -136,7 +134,13 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ order, items, typeRecuper
         {/* Lien vers suivi permanent */}
         <div className="text-center pb-4 space-y-1">
           <a
-            href={`/suivi?commande=${order.id}&tel=${encodeURIComponent(order.client.telephone)}`}
+            href={(() => {
+              const params = `?commande=${order.id}&tel=${encodeURIComponent(order.client.telephone)}`;
+              // Préserver le shopSlug si on est sur /:shopSlug/...
+              const parts = window.location.pathname.split('/').filter(Boolean);
+              const base = parts.length > 0 ? `/${parts[0]}/suivi` : '/suivi';
+              return `${base}${params}`;
+            })()}
             className="inline-flex items-center gap-1.5 text-sm text-gray-700 font-medium underline underline-offset-2 hover:text-gray-900"
           >
             <ExternalLink size={14} strokeWidth={1.5} />
