@@ -115,6 +115,11 @@ export const formatPhoneNumber = (phone: string, defaultCountry: string = 'SN'):
 export const isValidPhoneNumber = (phone: string): boolean => {
   if (!phone) return false;
 
+  // Rejeter si contient des lettres
+  const stripped = phone.trim().replace(/^\+/, '');
+  if (/[a-zA-Z]/.test(stripped)) return false;
+  if (/[^0-9\s\-\+\(\)]/.test(phone.trim())) return false;
+
   const formatted = formatPhoneNumber(phone);
   const cleaned = formatted.replace(/^\+/, '');
 
