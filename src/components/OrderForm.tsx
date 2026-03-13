@@ -8,7 +8,7 @@ import { papsDeliveryService } from '../services/papsDeliveryService';
 import type { PapsOption, DeliveryConfigPublic, ZonePublicInfo } from '../services/papsDeliveryService';
 import type { AdresseLivraison } from '../models/livraison-models';
 import AdresseAutocomplete from './AdresseAutocomplete';
-import { formatPhoneNumber } from '../utils/phoneFormatter';
+import { formatPhoneNumber, isValidPhoneNumber } from '../utils/phoneFormatter';
 
 interface OrderFormProps {
   isOpen: boolean;
@@ -79,7 +79,11 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
     if (!formData.clientNom.trim()) newErrors.clientNom = 'Le nom complet est obligatoire';
-    if (!formData.clientTelephone.trim()) newErrors.clientTelephone = 'Le téléphone est obligatoire';
+    if (!formData.clientTelephone.trim()) {
+      newErrors.clientTelephone = 'Le téléphone est obligatoire';
+    } else if (!isValidPhoneNumber(formData.clientTelephone)) {
+      newErrors.clientTelephone = 'Numéro de téléphone invalide (ex: 771234567 ou +221771234567)';
+    }
     if (formData.typeRecuperation === 'domicile') {
       if (!selectedDeliveryMode) {
         newErrors.deliveryMode = 'Veuillez sélectionner un mode de livraison';
@@ -209,6 +213,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ isOpen, onClose, onSuccess }) => 
 
   const isFormValid = () => {
     if (!formData.clientNom.trim() || !formData.clientTelephone.trim()) return false;
+    if (!isValidPhoneNumber(formData.clientTelephone)) return false;
     if (formData.typeRecuperation === 'domicile') {
       if (!selectedDeliveryMode) return false;
       if (selectedDeliveryMode === 'paps' && (!adresseLivraison || isCalculatingPrice)) return false;
