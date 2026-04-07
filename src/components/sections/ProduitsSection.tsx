@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShoppingCart, Eye, Heart, Share2, Star } from 'lucide-react';
-import produit1 from '../../assets/Produit 1.png';
+import { PRODUCT_PLACEHOLDER } from '../../utils/placeholders';
 import ProductModal from '../ProductModal';
 import SharePopup from '../SharePopup';
 import { useCart } from '../../context/CartContext';
@@ -65,7 +65,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
         const displayProducts: Product[] = data.map(p => ({
           id: p.id,
           name: p.nom,
-          image: p.image || produit1,
+          image: p.image || PRODUCT_PLACEHOLDER,
           rating: 4.5,
           reviews: Math.floor(Math.random() * 200) + 10,
           currentPrice: p.prixUnitaire,
@@ -229,6 +229,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
           src={product.image}
           alt={product.name}
           className="w-full h-52 object-contain p-6"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
         />
 
         {/* Bouton panier — dans la zone image, pleine largeur, visible au hover */}

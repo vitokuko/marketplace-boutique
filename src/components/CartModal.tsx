@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { PRODUCT_PLACEHOLDER } from '../utils/placeholders';
 import OrderForm from './OrderForm';
 import OrderTracking from './OrderTracking';
 import type { Order } from '../services/orderService';
@@ -89,7 +90,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                 <div key={item.id} className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0">
                   {/* Image */}
                   <div className="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-contain p-1 rounded-xl" />
+                    <img src={item.image || PRODUCT_PLACEHOLDER} alt={item.name} className="w-full h-full object-contain p-1 rounded-xl" onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }} />
                   </div>
 
                   {/* Infos */}

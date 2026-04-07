@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ShoppingBag, X, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { PRODUCT_PLACEHOLDER } from '../utils/placeholders';
 import { useShop } from '../context/ShopContext';
 import { calculatePapsDeliveryRate } from '../services/papsService';
 import GoogleAddressAutocomplete from '../components/GoogleAddressAutocomplete';
@@ -158,7 +159,7 @@ const Cart: React.FC = () => {
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between border-b border-gray-200 py-3 sm:py-4 last:border-b-0">
               <div className="flex items-center space-x-3 sm:space-x-4">
-                <img src={item.image} alt={item.name} className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg" />
+                <img src={item.image || PRODUCT_PLACEHOLDER} alt={item.name} className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg" onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }} />
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{item.name}</h3>
                   <p className="text-gray-600 text-sm sm:text-base">{item.price ? item.price.toLocaleString() : '0'} FCFA</p>

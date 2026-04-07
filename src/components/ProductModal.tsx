@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Heart, Minus, Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { PRODUCT_PLACEHOLDER } from '../utils/placeholders';
 
 interface Product {
   id: number;
@@ -67,9 +68,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
           {/* Image */}
           <div className="bg-gray-100 flex items-center justify-center p-12 min-h-80">
             <img
-              src={product.image}
+              src={product.image || PRODUCT_PLACEHOLDER}
               alt={product.name}
               className="max-h-72 w-full object-contain"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = PRODUCT_PLACEHOLDER; }}
             />
           </div>
 
