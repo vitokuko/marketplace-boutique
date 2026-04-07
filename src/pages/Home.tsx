@@ -109,7 +109,7 @@ export default function Home() {
 
   // Chargement des catégories pour la sidebar du hero
   useEffect(() => {
-    if (boutiqueId === null && !isLoading) return;
+    if (isLoading) return;
     getCategories(boutiqueId).then(data => setCategories(data)).catch(() => {});
   }, [boutiqueId, isLoading]);
 
