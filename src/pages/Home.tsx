@@ -265,7 +265,7 @@ export default function Home() {
             showNewBadge={true}
             selectedCategoryId={selectedCategoryId}
             sortBy="newest"
-            priceRange={[0, 200000]}
+            priceRange={[0, 10000000]}
             searchTerm=""
             boutiqueId={boutiqueId}
             columns={4}
@@ -281,7 +281,7 @@ export default function Home() {
             showNewBadge={false}
             selectedCategoryId={selectedCategoryId}
             sortBy="popularity"
-            priceRange={[0, 200000]}
+            priceRange={[0, 10000000]}
             searchTerm=""
             boutiqueId={boutiqueId}
             columns={4}

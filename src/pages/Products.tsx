@@ -18,7 +18,7 @@ export default function Products() {
   const { boutiqueId, isLoading, error } = useShop();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(0);
   const [sortBy, setSortBy] = useState('popularity');
-  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [searchTerm] = useState('');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 

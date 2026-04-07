@@ -39,7 +39,7 @@ const ProduitsSection: React.FC<ProduitsProps> = ({
   showAll = false,
   selectedCategoryId = 0,
   sortBy = 'popularity',
-  priceRange = [0, 200000],
+  priceRange = [0, 10000000],
   searchTerm = '',
   boutiqueId = null,
   sectionTitle,

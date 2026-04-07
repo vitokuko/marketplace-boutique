@@ -9,7 +9,7 @@ interface FilterProps {
 
 const ProductFilters: React.FC<FilterProps> = ({ onSortChange, onPriceRangeChange, onSearchChange }) => {
   const [sortBy, setSortBy] = useState('popularity');
-  const [priceRange, setPriceRange] = useState([0, 200000]);
+  const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
@@ -79,8 +79,8 @@ const ProductFilters: React.FC<FilterProps> = ({ onSortChange, onPriceRangeChang
           <input
             type="range"
             min="0"
-            max="200000"
-            step="5000"
+            max="10000000"
+            step="50000"
             value={priceRange[1]}
             onChange={handlePriceChange}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
